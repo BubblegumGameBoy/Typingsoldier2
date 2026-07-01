@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ソルジャータイピング ランキング</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a1a;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  min-height: 100vh;
+  padding: 20px 16px;
+}
+h1 {
+  text-align: center;
+  color: #FFD700;
+  font-size: 22px;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+  text-shadow: 0 0 12px #FFD70066;
+}
+.sub {
+  text-align: center;
+  color: #556;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  color: #aaa;
+  border-bottom: 1px solid #333;
+  padding: 5px 8px;
+  text-align: left;
+}
+th:last-child, td:last-child { text-align: right; }
+th:nth-child(3), td:nth-child(3) { text-align: right; }
+td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #1a1a2e;
+}
+tr:hover td { background: #111130; }
+.rank-1 { color: #FFD700; }
+.rank-2 { color: #C0C0C0; }
+.rank-3 { color: #CD7F32; }
+.wave-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  background: #1a1a3a;
+  color: #88aaff;
+}
+.wave-5 { background: #2a1a3a; color: #cc88ff; }
+#loading { text-align: center; color: #556; padding: 40px; font-size: 14px; }
+#updated { text-align: center; color: #334; font-size: 10px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h1>RANKING</h1>
+<p class="sub">ソルジャータイピング 歴代スコア</p>
+<div id="loading">読み込み中...</div>
+<table id="rank-table" style="display:none">
+  <thead>
+    <tr>
+      <th style="width:36px;">#</th>
+      <th>名前</th>
+      <th>スコア</th>
+      <th>Wave</th>
+      <th>日付</th>
+    </tr>
+  </thead>
+  <tbody id="rank-body"></tbody>
+</table>
+<div id="updated"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBhMkq24FzmHjnJu0OQ7SeQgEV__eY9iGo",
+  authDomain: "bubble-wars-ffcd4.firebaseapp.com",
+  projectId: "bubble-wars-ffcd4",
+  storageBucket: "bubble-wars-ffcd4.firebasestorage.app",
+  messagingSenderId: "465836224399",
+  appId: "1:465836224399:web:8852c314794cfc69a025fa"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// シードスコア（実プレイのスコアと一緒にソートされる）
+const SEED = [
+  {name:'うんこ',                 score:287000, wave:5, date:'2026/6/8'},
+  {name:'こうた',                 score:264500, wave:5, date:'2026/6/8'},
+  {name:'バトルロワイアルZの使者', score:251000, wave:5, date:'2026/6/8'},
+  {name:'AAA',                   score:238000, wave:5, date:'2026/6/8'},
+  {name:'勇者',                   score:226500, wave:5, date:'2026/6/8'},
+  {name:'Hunter',                score:213000, wave:5, date:'2026/6/8'},
+  {name:'ランスロット',            score:205000, wave:5, date:'2026/6/8'},
+];
+
+function render(docs) {
+  const real = docs.map(d => d.data());
+  const all = [...real, ...SEED].sort((a,b) => b.score - a.score).slice(0, 30);
+
+  const tbody = document.getElementById('rank-body');
+  tbody.innerHTML = '';
+
+  if (all.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#445;padding:24px;">まだスコアがありません</td></tr>';
+  } else {
+    all.forEach((e, i) => {
+      const rank = i + 1;
+      const cls = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+      const waveCls = e.wave === 5 ? 'wave-badge wave-5' : 'wave-badge';
+      const tr = document.createElement('tr');
+      if (cls) tr.className = cls;
+      tr.innerHTML = `
+        <td>${rank}.</td>
+        <td>${e.name}</td>
+        <td><b>${e.score.toLocaleString()}</b></td>
+        <td><span class="${waveCls}">Wave ${e.wave}</span></td>
+        <td style="color:#445;font-size:11px;">${e.date ?? ''}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('rank-table').style.display = '';
+  document.getElementById('updated').textContent = '最終更新: ' + new Date().toLocaleTimeString('ja-JP');
+}
+
+const q = query(collection(db, 'scores'), orderBy('score', 'desc'), limit(50));
+onSnapshot(q, snap => render(snap.docs), err => {
+  document.getElementById('loading').textContent = 'ランキングの取得に失敗しました';
+  console.error(err);
+});
+</script>
+</body>
+</html>
