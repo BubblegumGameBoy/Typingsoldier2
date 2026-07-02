@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, follow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タイピング神話討伐 — 召喚レイド</title>
+<title>クトゥルフタイピング — 1日1体、日替わり討伐</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-17WNKDX3ZB"></script>
 <script>
@@ -210,7 +210,6 @@ body{
   <div id="unitLayer"></div>
 
   <div class="hudBox" id="hudL">
-    <div class="row" id="killsRow" style="display:none;"><span class="k">討伐数</span><span class="v vGold" id="hKills">0</span></div>
     <div class="row"><span class="k">軍勢</span><span class="v vGold" id="hArmy">0</span></div>
     <div class="row"><span class="k">軍勢DPS</span><span class="v" id="hDps">0</span></div>
     <div class="row"><span class="k">打鍵/分</span><span class="v" id="hCpm">0</span></div>
@@ -235,24 +234,16 @@ body{
 
 <!-- ===== overlays ===== -->
 <div class="overlay" id="ovTitle">
-  <h1 class="serif">タイピング神話討伐</h1>
+  <h1 class="serif">クトゥルフタイピング</h1>
   <div class="sub">ことばを打つたび、兵士が召喚され自動で戦う。<br>
     長いことばほど強い兵士が来る。軍勢を増やして、今日の神格を討て。<br>
     <b style="color:var(--gold)">倒したら今日はクリア。また明日、新たな神格が現れる。</b></div>
   <div class="sub serif" id="ovTodayBoss" style="color:#e6c674;font-size:15px;"></div>
   <input id="nameIn" maxlength="12" placeholder="なまえ（ランキング用）">
-  <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center;">
-    <button class="gbtn" id="btnStart">本日の討伐</button>
-    <button class="gbtn" id="btnSurvival" style="background:linear-gradient(#9a6ad0,#6a3aa0);border:1px solid #4a2a70;color:#fff;">サバイバル</button>
-  </div>
-  <div class="sub" style="margin-top:8px;font-size:11px;">
-    本日の討伐＝1日1回・スコア勝負（Enterでも開始）<br>
-    サバイバル＝エンドレス・軍勢は引き継ぎ・累計討伐数を競う</div>
-  <div class="sub" id="survStats" style="color:#c9b3f3;font-weight:700;"></div>
+  <button class="gbtn" id="btnStart">挑 戦 す る</button>
+  <div class="sub" style="margin-top:10px;font-size:11px;">1日1体・Enterでも開始 ／ スコア＝打鍵速度×正確率×ボス強度</div>
   <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
   <div id="rankListT"><div class="sub">読み込み中…</div></div>
-  <div class="rankTitle">─ サバイバル累計討伐ランキング ─</div>
-  <div id="rankListS"><div class="sub">読み込み中…</div></div>
 </div>
 
 <div class="overlay" id="ovCount" style="display:none;"><div id="countNum">3</div></div>
@@ -264,7 +255,7 @@ body{
   <div id="resFormula"></div>
   <div class="sub" id="resDetail"></div>
   <button class="gbtn" id="btnRetry" style="display:none;">もう一回（debug）</button>
-  <button class="gbtn2" id="btnResultBack">タイトルへ戻る（サバイバルで遊べる）</button>
+  <button class="gbtn2" id="btnResultBack">タイトルへ戻る（ランキングを見る）</button>
   <div class="sub" style="margin-top:14px;"><b style="color:var(--gold)">また明日、新たな神格が現れる──</b></div>
   <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
   <div id="rankList"><div class="sub">読み込み中…</div></div>
@@ -290,19 +281,6 @@ try {
     try {
       await addDoc(collection(db, 'scores'), { ...rec, ts: serverTimestamp() });
     } catch(e){ console.warn('submit failed', e); }
-  };
-  // サバイバル：全期間・uid毎の最大累計討伐数
-  window._fetchSurvRanking = async () => {
-    try {
-      const snap = await getDocs(query(collection(db,'scores'), where('mode','==','survival')));
-      const best = new Map();
-      snap.forEach(d => {
-        const r = d.data();
-        const cur = best.get(r.uid);
-        if (!cur || (r.kills||0) > cur.kills) best.set(r.uid, {name:r.name||'？', kills:r.kills||0});
-      });
-      return [...best.entries()].map(([uid,v])=>({uid,...v})).sort((a,b)=>b.kills-a.kills);
-    } catch(e){ console.warn('surv ranking failed', e); return null; }
   };
   // 等価フィルタのみ（複合インデックス不要）。整列・uid重複除去はクライアント側。
   window._fetchRaidRanking = async (date) => {
@@ -416,8 +394,6 @@ const UNIT_TIERS = [
     {img:'unit_dragong.png',  label:'翠竜',       dmg:28, h:13, proj:'🔥', fly:1},
     {img:'unit_dragonp.png',  label:'紫竜',       dmg:28, h:13, proj:'🔥', fly:1}]},
 ];
-const UNIT_BY_IMG = {};
-for (const t of UNIT_TIERS) for (const u of t.units) UNIT_BY_IMG[u.img] = u;
 function tierForLen(len){
   let t = UNIT_TIERS[0];
   for (const u of UNIT_TIERS) if (len >= u.minLen) t = u;
@@ -476,28 +452,6 @@ function todaysWordOrder(){
 }
 
 // ═══════════════════════════════════════════════
-// サバイバル（エンドレス・軍勢引き継ぎ・累計討伐数）
-// HP: 序盤は1.25倍/体で気持ちよく、11体目以降は1.12倍/体で伸びる
-// ═══════════════════════════════════════════════
-function survHP(k){
-  // 序盤1.30倍/体で「秒殺の快感」→11体目から1.15倍/体の複利で本格化
-  return Math.round(800 * Math.pow(1.30, Math.min(k, 10)) * Math.pow(1.15, Math.max(k - 10, 0)));
-}
-const SURV_MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
-function loadSurv(){
-  try {
-    const s = JSON.parse(localStorage.getItem('ts2_surv'));
-    if (s && typeof s.kills === 'number') return { kills: s.kills, hpLeft: s.hpLeft, counts: s.counts || {} };
-  } catch(e){}
-  return { kills: 0, hpLeft: null, counts: {} };
-}
-function saveSurv(){
-  if (!run || run.mode !== 'survival' || DEBUG) return;
-  try { localStorage.setItem('ts2_surv', JSON.stringify({
-    kills: run.kills, hpLeft: Math.max(0, Math.round(run.bossHp)), counts: run.unitCounts })); } catch(e){}
-}
-
-// ═══════════════════════════════════════════════
 // プロフィール（localStorage）
 // ═══════════════════════════════════════════════
 function loadProfile(){
@@ -537,17 +491,11 @@ const bossEl = $('boss'), bossImg = $('bossImg'), unitLayer = $('unitLayer');
 
 let state = 'title';   // title | countdown | playing | victory | result
 let run = null;
-let gameMode = 'daily'; // daily | survival
 let wordOrder = todaysWordOrder();
 
-function newRun(mode){
-  const surv = mode === 'survival' ? loadSurv() : null;
+function newRun(){
   return {
-    mode,
-    kills: surv ? surv.kills : 0,
-    _survLoaded: surv,
-    unitCounts: null,
-    bossMax: 0, bossHp: 0, killed: false, swapping: false,
+    bossMax: BOSS_HP, bossHp: BOSS_HP, killed: false,
     army: [],            // {el, dmg, proj, nextAtk, x, y}
     typedChars: 0, missChars: 0, wordsDone: 0,
     wordIdx: 0, word: null,
@@ -556,14 +504,6 @@ function newRun(mode){
   };
 }
 
-function curBoss(){
-  return (run && run.mode === 'survival') ? ROSTER[run.kills % ROSTER.length] : TODAY_BOSS;
-}
-function applySurvLoopLabel(){
-  if (!run || run.mode !== 'survival') return;
-  const loop = Math.floor(run.kills / ROSTER.length);
-  if (loop > 0) $('bossName').textContent += '・' + (loop + 1) + '周目';
-}
 
 function setBossVisual(b){
   b = b || TODAY_BOSS;
@@ -595,13 +535,7 @@ function updateBattleHud(){
   $('hDps').textContent  = fmt(Math.round(run.army.reduce((a,u)=>a+u.dmg,0) / (ATK_IV_MS/1000)));
   $('hCpm').textContent  = Math.round(curCpm());
   $('hAcc').textContent  = Math.round(curAcc()*100) + '%';
-  if (run.mode === 'survival') {
-    $('battleTimer').textContent = '討伐 ' + fmt(run.kills) + ' 体';
-    $('hKills').textContent = fmt(run.kills);
-    saveSurv();   // HP残量も含めて随時セーブ（0.5秒毎・軽量）
-  } else {
-    $('battleTimer').textContent = fmtTime(elapsedMs());
-  }
+  $('battleTimer').textContent = fmtTime(elapsedMs());
 }
 function updateOrb(){
   const max = (run && run.bossMax) ? run.bossMax : BOSS_HP;
@@ -638,7 +572,7 @@ function makeSlots(side){
 let slotSides = null;   // beginRunで初期化
 let sideToggle = 0;
 function nextSide(){
-  const f = curBoss().face || 'F';
+  const f = TODAY_BOSS.face || 'F';
   if (f === 'L' || f === 'R') return f;
   sideToggle ^= 1;                      // 正面ボスは左右交互
   return sideToggle ? 'R' : 'L';
@@ -699,10 +633,6 @@ function placeUnit(def){
 function summonUnit(kana){
   const def = unitForWord(kana);
   const { pos } = placeUnit(def);
-  if (run.mode === 'survival') {
-    run.unitCounts[def.img] = (run.unitCounts[def.img] || 0) + 1;
-    saveSurv();
-  }
   // 召喚トースト
   const toast = document.createElement('div');
   toast.className = 'summonToast';
@@ -761,7 +691,7 @@ function unitAttack(u){
 }
 
 function dealDamage(dmg){
-  if (!run || run.killed || run.swapping || state !== 'playing') return;
+  if (!run || run.killed || state !== 'playing') return;
   run.bossHp -= dmg;
   popDamage(dmg, false);
   bossHitFx();
@@ -821,12 +751,7 @@ function onChar(ch){
     if (!run.curWordMiss) {
       run.perfectStreak = (run.perfectStreak || 0) + 1;
       if (run.perfectStreak % 5 === 0) {
-        const def = unitForWord(kana);
-        placeUnit(def);
-        if (run.mode === 'survival' && run.unitCounts) {
-          run.unitCounts[def.img] = (run.unitCounts[def.img] || 0) + 1;
-          saveSurv();
-        }
+        placeUnit(unitForWord(kana));
         const toast = document.createElement('div');
         toast.className = 'summonToast';
         toast.style.color = '#ffd24a';
@@ -856,7 +781,6 @@ function calcScore(){
 // 討伐 → 結果
 // ═══════════════════════════════════════════════
 function onKill(){
-  if (run.mode === 'survival') return survKill();
   run.killed = true;
   run.killMs = elapsedMs();
   state = 'victory';
@@ -869,48 +793,6 @@ function onKill(){
     $('killBanner').classList.remove('on');
     showResult();
   }, 1400);
-}
-
-// サバイバル討伐：軍勢そのまま、次のボスが即登場（エンドレス）
-function survKill(){
-  run.kills++;
-  run.swapping = true;
-  saveSurv();
-  submitSurv(false);
-  $('hKills').textContent = fmt(run.kills);
-  if (SURV_MILESTONES.includes(run.kills)) {
-    $('kbText').textContent = '🏆 偉業達成！累計 ' + fmt(run.kills) + ' 体討伐！';
-    blip(660,0.2,0.15,'triangle'); setTimeout(()=>blip(880,0.2,0.15,'triangle'),140);
-    setTimeout(()=>blip(1100,0.25,0.15,'triangle'),280); setTimeout(()=>blip(1470,0.4,0.15,'triangle'),430);
-  } else {
-    $('kbText').textContent = '累計 ' + fmt(run.kills) + ' 体';
-    blip(880, 0.25, 0.14, 'triangle'); setTimeout(()=>blip(1320,0.3,0.1,'triangle'), 100);
-  }
-  $('killBanner').classList.add('on');
-  bossEl.classList.add('dying');
-  setTimeout(() => {
-    $('killBanner').classList.remove('on');
-    // 入れ替え待ちの間にEsc等で抜けていたら何もしない
-    if (!run || run.mode !== 'survival' || state !== 'playing') return;
-    bossEl.classList.remove('dying');
-    setBossVisual(curBoss());
-    applySurvLoopLabel();
-    bossEl.classList.add('enter');
-    setTimeout(() => bossEl.classList.remove('enter'), 650);
-    run.bossMax = run.bossHp = survHP(run.kills);
-    run.swapping = false;
-    updateOrb(); updateBattleHud();
-  }, 1000);
-}
-
-let _lastSurvSubmit = 0;
-function submitSurv(force){
-  if (DEBUG || !window._submitRaid || !run || run.mode !== 'survival' || run.kills < 1) return;
-  const now = Date.now();
-  if (!force && now - _lastSurvSubmit < 20000) return;   // 書き込みスロットル
-  _lastSurvSubmit = now;
-  window._submitRaid({ uid: profile.uid, name: profile.name, mode:'survival',
-    kills: run.kills, date: TODAY });
 }
 
 function showResult(){
@@ -966,25 +848,6 @@ async function refreshRanking(listId){
       escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.score) + '</span></div>';
   }
 }
-async function refreshSurvRanking(listId){
-  const el = $(listId);
-  el.innerHTML = '<div class="sub">読み込み中…</div>';
-  if (!window._fetchSurvRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
-  const rows = await window._fetchSurvRanking();
-  if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
-  if (!rows.length) { el.innerHTML = '<div class="sub">まだ記録なし。一番乗り！</div>'; return; }
-  el.innerHTML = rows.slice(0, 10).map((r, i) =>
-    '<div class="rrow' + (r.uid === profile.uid ? ' me' : '') + '">' +
-    '<span>' + (i+1) + '位 <span class="rname">' + escapeHtml(r.name) + '</span></span>' +
-    '<span class="rdmg">' + fmt(r.kills) + '体</span></div>'
-  ).join('');
-  const myIdx = rows.findIndex(r => r.uid === profile.uid);
-  if (myIdx >= 10) {
-    const r = rows[myIdx];
-    el.innerHTML += '<div class="rrow me"><span>' + (myIdx+1) + '位 <span class="rname">' +
-      escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.kills) + '体</span></div>';
-  }
-}
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ═══════════════════════════════════════════════
@@ -995,13 +858,11 @@ function showOverlay(id){
     $(o).style.display = (o === id) ? 'flex' : 'none';
 }
 
-// タイトル＝ハブ。デイリー討伐済みならボタンを封印、サバイバルは常時遊べる
+// タイトル＝ハブ。討伐済みならボタンを封印（また明日）
 function updateTitleUI(){
   const locked = profile.lastClearDate === TODAY && !DEBUG;
   $('btnStart').disabled = locked;
-  $('btnStart').textContent = locked ? '討伐済み！また明日' : '本日の討伐';
-  const sv = loadSurv();
-  $('survStats').textContent = sv.kills > 0 ? 'サバイバル累計討伐：' + fmt(sv.kills) + ' 体' : '';
+  $('btnStart').textContent = locked ? '討伐済み！また明日' : '挑 戦 す る';
 }
 
 function backToTitle(){
@@ -1009,24 +870,19 @@ function backToTitle(){
   state = 'title';
   unitLayer.innerHTML = '';
   $('battleTimer').style.display = 'none';
-  $('killsRow').style.display = 'none';
-  $('hudR').style.display = '';
   bossEl.classList.remove('dying');
   setBossVisual(TODAY_BOSS); updateOrb(); renderWord();
   updateTitleUI();
   showOverlay('ovTitle');
   refreshRanking('rankListT');
-  refreshSurvRanking('rankListS');
 }
 
 // ═══════════════════════════════════════════════
 // 開始フロー
 // ═══════════════════════════════════════════════
-function startCountdown(mode){
+function startCountdown(){
   if (state === 'countdown' || state === 'playing') return;
-  mode = mode || 'daily';
-  if (mode === 'daily' && profile.lastClearDate === TODAY && !DEBUG) return;  // 討伐済みロック
-  gameMode = mode;
+  if (profile.lastClearDate === TODAY && !DEBUG) return;  // 討伐済みロック
   const nm = $('nameIn').value.trim();
   profile.name = nm || profile.name || '名無しの探索者';
   saveProfile();
@@ -1046,34 +902,13 @@ function startCountdown(mode){
 }
 
 function beginRun(){
-  run = newRun(gameMode);
+  run = newRun();
   slotSides = { L: makeSlots('L'), R: makeSlots('R') };
   sideToggle = Math.random() < 0.5 ? 0 : 1;
   unitLayer.innerHTML = '';
   bossEl.classList.remove('dying');
-  state = 'playing';   // placeUnit前に設定（nextSideがcurBossを見る）
-  if (gameMode === 'survival') {
-    // セーブから累計討伐数・ボスHP残・軍勢を復元（引き継ぎ）
-    const sv = run._survLoaded;
-    run.unitCounts = sv.counts || {};
-    run.bossMax = survHP(run.kills);
-    run.bossHp = (sv.hpLeft != null && sv.hpLeft > 0 && sv.hpLeft <= run.bossMax) ? sv.hpLeft : run.bossMax;
-    setBossVisual(curBoss());
-    for (const [img, n] of Object.entries(run.unitCounts)) {
-      const def = UNIT_BY_IMG[img];
-      if (!def) continue;
-      for (let i = 0; i < n; i++) placeUnit(def);
-    }
-    applySurvLoopLabel();
-    $('killsRow').style.display = '';
-    $('hKills').textContent = fmt(run.kills);
-    $('hudR').style.display = 'none';   // デイリー用の通算/連続はサバイバルでは非表示（誤解防止）
-  } else {
-    run.bossMax = run.bossHp = BOSS_HP;
-    setBossVisual(TODAY_BOSS);
-    $('killsRow').style.display = 'none';
-    $('hudR').style.display = '';
-  }
+  state = 'playing';
+  setBossVisual(TODAY_BOSS);
   showOverlay(null);
   $('battleTimer').style.display = 'inline-block';
   nextWord();
@@ -1085,7 +920,6 @@ function beginRun(){
 
 function abortRun(){
   if (state !== 'playing') return;
-  if (run.mode === 'survival') { saveSurv(); submitSurv(true); }
   clearInterval(run.tickId); clearInterval(run.hudId);
   backToTitle();
 }
@@ -1097,29 +931,21 @@ attachKeyInput({
   isActive: () => state === 'playing',
   onChar,
   onEnter: () => {
-    if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown('daily'); return; }
-    if (state === 'title') startCountdown('daily');
-    else if (state === 'result' && DEBUG) startCountdown(gameMode);
+    if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown(); return; }
+    if (state === 'title') startCountdown();
+    else if (state === 'result' && DEBUG) startCountdown();
   },
   onEscape: () => { if (state === 'playing') abortRun(); },
 });
 
-$('btnStart').addEventListener('click', () => startCountdown('daily'));
-$('btnSurvival').addEventListener('click', () => startCountdown('survival'));
+$('btnStart').addEventListener('click', () => startCountdown());
 $('btnResultBack').addEventListener('click', backToTitle);
-$('btnRetry').addEventListener('click', () => startCountdown(gameMode));
+$('btnRetry').addEventListener('click', () => startCountdown());
 $('audioBtn').addEventListener('click', () => {
   audioOn = !audioOn;
   $('audioBtn').style.color = audioOn ? 'var(--gold)' : '#555';
   $('audioBtn').textContent = audioOn ? '♪' : '✕';
 });
-
-// タブを閉じる/裏に回した瞬間にセーブ＆ランキング送信（取りこぼし防止）
-function flushSurv(){
-  if (run && run.mode === 'survival' && state === 'playing') { saveSurv(); submitSurv(true); }
-}
-window.addEventListener('beforeunload', flushSurv);
-document.addEventListener('visibilitychange', () => { if (document.hidden) flushSurv(); });
 
 // ═══════════════════════════════════════════════
 // 起動
@@ -1130,10 +956,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) flush
   updateHud(); updateOrb();
   $('nameIn').value = profile.name || '';
   $('ovTodayBoss').textContent = '本日の神格：' + TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」（強度×' + STRENGTH.toFixed(2) + '）';
+  try { localStorage.removeItem('ts2_surv'); } catch(e){}   // 旧サバイバルのセーブを掃除
   updateTitleUI();
   showOverlay('ovTitle');
   refreshRanking('rankListT');
-  refreshSurvRanking('rankListS');
 })();
 </script>
 </body>

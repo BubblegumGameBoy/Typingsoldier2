@@ -1,0 +1,241 @@
+<style>
+  /* ▼ サイドバー消す */
+  #box2, .sidebar {
+    display: none !important;
+  }
+  /* ▼ メインを全幅に */
+  #main, #container, .wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .entry-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  /* ▼ iframeを画面いっぱいに */
+  .full-iframe {
+    width: 100vw;
+    height: 105vh;
+    margin-left: calc(50% - 50vw + 25px);
+    border: none;
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+  h2.section-head {
+    font-size: 118% !important;
+    font-weight: bold !important;
+    background-color: #555555 !important;
+    color: #ffffff !important;
+    padding: 10px 14px !important;
+    border-top: 4px solid #aaaaaa !important;
+    border-bottom: 4px solid #aaaaaa !important;
+    box-shadow: inset 0px 1px 0px #ffffff, inset 0px -1px 0px #ffffff;
+    margin-top: 48px !important;
+    margin-bottom: 20px !important;
+    border-left: none !important;
+  }
+  .note-box {
+    background: #fffde6;
+    border: 1px solid #e8d44d;
+    border-radius: 5px;
+    padding: 13px 16px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    color: #444;
+    line-height: 1.8;
+  }
+  .note-box .note-label { font-weight: bold; color: #555; margin-right: 4px; }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 16px 0;
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    line-height: 1.7;
+    background: #fff;
+    vertical-align: top;
+  }
+  .data-table tr:nth-child(even) td { background: #f9f9f9; }
+  .data-table th[scope="row"] {
+    background: #f5f5f5;
+    color: #333333;
+    font-weight: bold;
+    white-space: nowrap;
+    vertical-align: top;
+    padding: 9px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+  }
+  .play-btn-wrap { text-align: center; margin: 26px 0; }
+  .play-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    background: #7a4ab0;
+    color: #ffffff !important;
+    border-radius: 10px;
+    font-weight: bold;
+    text-decoration: none !important;
+    font-size: 18px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+    transition: all 0.18s;
+  }
+  .play-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .play-btn-sub { display: block; font-size: 12px; color: #888; margin-top: 8px; }
+  .faq-list dt {
+    font-weight: bold; background: #f5f5f5; padding: 10px 14px; margin-top: 12px;
+    border-left: 4px solid #555555; font-size: 14.5px;
+  }
+  .faq-list dd {
+    padding: 10px 14px 14px 18px; margin: 0; font-size: 14px;
+    line-height: 1.85; border-bottom: 1px solid #eee;
+  }
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 6px; line-height: 1.8; }
+  p { margin-bottom: 1.4em; }
+  @media (max-width: 520px) {
+    .data-table, .data-table tbody, .data-table tr, .data-table td {
+      display: block; width: 100%; box-sizing: border-box;
+    }
+    .data-table th[scope="row"] {
+      display: block; width: 100%; box-sizing: border-box;
+      padding: 6px 10px; font-size: 11px; color: #666;
+      background: #f5f5f5; border-bottom: 1px solid #f0f0f0;
+    }
+    .data-table tr {
+      border: 1px solid #e0e0e0; border-radius: 6px;
+      margin-bottom: 10px; overflow: hidden;
+    }
+    .data-table td {
+      padding: 7px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+    }
+    .data-table td:last-child { border-bottom: none; }
+    .data-table tr:nth-child(even) td { background: #ffffff; }
+    .play-btn { font-size: 16px; padding: 13px 24px; }
+  }
+  /* ▼ スマホでは白くなるiframeを隠し、プレイボタンを出す */
+  .mobile-play-cta { display: none; }
+  @media (max-width: 768px) {
+    .full-iframe { display: none !important; }
+    .post-iframe-ad { margin-top: 0 !important; }
+    .mobile-play-cta {
+      display: block; text-align: center;
+      margin: 8px auto 24px; padding: 18px 20px;
+      background: #7a4ab0; color: #ffffff !important;
+      border-radius: 12px; font-weight: bold; font-size: 18px;
+      text-decoration: none !important;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    .mobile-play-cta span { display: block; font-size: 12px; opacity: .85; margin-top: 5px; }
+  }
+</style>
+<p>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "クトゥルフタイピング",
+  "alternateName": "Cthulhu Typing",
+  "url": "https://play.bubblegumgameboy.com/Typingsoldier2/",
+  "genre": ["タイピングゲーム", "放置ゲーム", "クリッカーゲーム", "クトゥルフ神話"],
+  "gamePlatform": ["Web Browser", "PC"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "playMode": "SinglePlayer",
+  "inLanguage": "ja",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+</p>
+<p>ことばをタイピングすると兵士が召喚され、勝手に戦ってくれる。無料のブラウザタイピングゲーム「クトゥルフタイピング」を公開しました。</p>
+<p>ボスはクトゥルフ神話の神格・眷属たち、全43体。<strong>1日1体の日替わり</strong>で、今日のボスは全プレイヤー共通です。ひらがなをローマ字で打ちきるたびに兵士が1体参戦し、軍勢がどんどん膨らんで、巨大な神格を寄ってたかって殴り倒します。倒したら今日はクリア。また明日、新しい神格が現れます。</p>
+<p style="margin-bottom: 0;"><iframe class="full-iframe" src="https://play.bubblegumgameboy.com/Typingsoldier2/" title="クトゥルフタイピング（ことばを打って兵士を召喚するタイピングゲーム）" loading="lazy" allow="fullscreen"></iframe><a href="https://play.bubblegumgameboy.com/Typingsoldier2/" target="_blank" rel="noopener" class="mobile-play-cta">▶ いますぐ全画面でプレイ<span>無料・インストール不要・PCキーボード専用</span></a></p>
+<div class="post-iframe-ad" style="text-align: center; margin: -16vh 0 24px 0; overflow: hidden;"><ins class="adsbygoogle" style="display: block;" data-ad-client="ca-pub-2203567155161909" data-ad-slot="1400091008" data-ad-format="horizontal" data-full-width-responsive="true"> </ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+<h2 class="section-head">基本情報</h2>
+<table class="data-table">
+<tbody>
+<tr>
+<th style="width: 30%;" scope="row">タイトル</th>
+<td>クトゥルフタイピング</td>
+</tr>
+<tr>
+<th scope="row">ジャンル</th>
+<td>タイピング×召喚バトル（打つほど軍勢が増える放置クリッカー風）</td>
+</tr>
+<tr>
+<th scope="row">料金</th>
+<td>無料</td>
+</tr>
+<tr>
+<th scope="row">対応環境</th>
+<td>PC（Chrome / Edge / Firefox / Safari）＋物理キーボード必須</td>
+</tr>
+<tr>
+<th scope="row">プレイ時間</th>
+<td>1日1体・1回あたり2〜3分（タイピングが速いほど短くなる）</td>
+</tr>
+<tr>
+<th scope="row">ボス</th>
+<td>日替わり全43体（クトゥルフ、ニャルラトホテプ、ハスターなど神話の神格・眷属）</td>
+</tr>
+<tr>
+<th scope="row">ランキング</th>
+<td>本日の討伐者ランキングあり（なまえを入れてプレイするだけで自動掲載）</td>
+</tr>
+</tbody>
+</table>
+<p>このゲームは「タイピングで敵を攻撃する」ゲームではありません。<strong>タイピングで兵士を召喚する</strong>ゲームです。召喚された兵士は自動で攻撃し続けてくれるので、打てば打つほど軍勢が増えて、ダメージがどんどん加速していきます。手を止めても兵士は戦い続けてくれるので、タイピングが苦手でも必ず討伐できます。</p>
+<h2 class="section-head">遊び方</h2>
+<ol>
+<li><span style="font-weight: bold;">なまえを入れて「挑戦する」</span>：Enterキーでも開始できます</li>
+<li><span style="font-weight: bold;">ひらがなをローマ字で打つ</span>：IMEの切り替えは不要。日本語入力がONのままでも打てます</li>
+<li><span style="font-weight: bold;">打ちきると兵士が召喚</span>：ことばが長いほど強い兵士（2文字=村人 → 5文字=竜・天使）</li>
+<li><span style="font-weight: bold;">兵士は自動攻撃</span>：軍勢を増やしてボスのHPを削りきれば討伐！</li>
+<li><span style="font-weight: bold;">1日1体</span>：討伐したら今日はクリア。深夜0時に新しい神格と新しいお題が来ます</li>
+</ol>
+<h2 class="section-head">スコアとランキングの仕組み</h2>
+<p>スコアは <strong>打鍵速度 × 正確率 × ボス強度</strong> で決まります。討伐までの速さそのものではなく「どれだけ速く・正確に打てたか」が評価されるので、強いボスの日でも弱いボスの日でも公平に競えます。</p>
+<ul>
+<li>お題の出題順は日替わりで全プレイヤー共通。同じ条件でスコアを競えます</li>
+<li>その日のベストスコアがランキングに載ります（リトライは討伐するまで何度でも）</li>
+<li>ランキングは毎日リセット。毎日1位のチャンスがあります</li>
+</ul>
+<h2 class="section-head">楽しむコツ</h2>
+<ul>
+<li><strong>長いことばを大切に</strong>：5文字のことばは竜・天使・パラディンなど最強クラスの兵士が出る</li>
+<li><strong>ノーミスで5語連続</strong>で打ちきると援軍がもう1体参戦。正確さが軍勢に直結する</li>
+<li>ミスすると正確率が下がってスコアに響く。<strong>速さより正確さ</strong></li>
+<li>兵士が40体を超えると合流して「×2 ×3…」と重なって巨大化していく。軍勢が育つ様子を眺めるのも一興</li>
+<li>ボスによって兵士の集まり方が変わる。正面向きのボスは左右から挟み撃ちに</li>
+</ul>
+<h2 class="section-head">よくある質問</h2>
+<dl class="faq-list">
+<dt>日本語入力（IME）をオフにする必要はありますか？</dt>
+<dd>不要です。変換がONのままでもローマ字の打鍵がそのまま通る作りになっています。お子さんや設定が苦手な方でも詰まりません。</dd>
+<dt>スマホでも遊べますか？</dt>
+<dd>すみません、現状はPC専用です。物理キーボードでローマ字を打つゲームのため、スマホには対応していません。</dd>
+<dt>タイピングが遅くても倒せますか？</dt>
+<dd>倒せます。召喚した兵士は手を止めても自動で攻撃し続けてくれるので、ゆっくりでも必ず討伐できます。時間がかかってもゲームオーバーはありません。</dd>
+<dt>「討伐済み」と出て遊べません</dt>
+<dd>このゲームは1日1体です。今日のボスを倒したら、日本時間の深夜0時に新しいボスが現れます。また明日挑戦してください。</dd>
+<dt>ランキングに載るにはどうすればいいですか？</dt>
+<dd>最初の画面でなまえを入れてプレイするだけです。その日のベストスコアが自動でランキングに掲載されます。</dd>
+<dt>記録が消えました</dt>
+<dd>討伐記録はブラウザに保存されます。別の端末やシークレットモードでは引き継がれませんのでご注意ください。</dd>
+</dl>
+<h2 class="section-head">他自作ゲームの紹介</h2>
+<p><iframe src="https://hatenablog-parts.com/embed?url=https%3A%2F%2Fbabblegum.hatenablog.com%2Fentry%2F2026%2F06%2F06%2F124954" title="【自作ゲーム】ソルジャータイピング。タイピングで戦う無料ゲーム - バブルガムのゲームブログ" class="embed-card embed-blogcard" scrolling="no" frameborder="0" style="display: block; width: 100%; height: 190px; max-width: 500px; margin: 10px 0px;" loading="lazy"></iframe><cite class="hatena-citation"><a href="https://babblegum.hatenablog.com/entry/2026/06/06/124954">babblegum.hatenablog.com</a></cite></p>
+<p><iframe src="https://hatenablog-parts.com/embed?url=https%3A%2F%2Fbabblegum.hatenablog.com%2Fentry%2F2026%2F06%2F12%2F144156" title="スペースキー連打ゲーム：ボスを倒して自動化していこう【ブラウザ・スマホ対応】 - バブルガムのゲームブログ" class="embed-card embed-blogcard" scrolling="no" frameborder="0" style="display: block; width: 100%; height: 190px; max-width: 500px; margin: 10px 0px;" loading="lazy"></iframe><cite class="hatena-citation"><a href="https://babblegum.hatenablog.com/entry/2026/06/12/144156">babblegum.hatenablog.com</a></cite></p>
+<p><iframe src="https://hatenablog-parts.com/embed?url=https%3A%2F%2Fbabblegum.hatenablog.com%2Fentry%2F2026%2F06%2F16%2F191027" title="【放置型タイピングゲーム】ポップコーンタイピング - バブルガムのゲームブログ" class="embed-card embed-blogcard" scrolling="no" frameborder="0" style="display: block; width: 100%; height: 190px; max-width: 500px; margin: 10px 0px;" loading="lazy"></iframe><cite class="hatena-citation"><a href="https://babblegum.hatenablog.com/entry/2026/06/16/191027">babblegum.hatenablog.com</a></cite></p>
+<!-- ▼ アイキャッチ画像：はてなフォトライフにアップした画像URLに差し替えてください -->
+<!-- <p><img src="（画像URL）" alt="クトゥルフタイピング" loading="lazy" class="hatena-fotolife" itemprop="image" /></p> -->
+<p> </p>

@@ -1,7 +1,7 @@
-# Typingsoldier2 — タイピング神話討伐（召喚レイド）
+# Typingsoldier2 — クトゥルフタイピング
 
 **ことばを打つと兵士が召喚され、自動で戦う。** 軍勢を増やして「今日の神格」を討て。
-討伐したら今日はクリア——また明日、新たな神格が現れる。
+1日1体・日替わり全43体。討伐したら今日はクリア——また明日、新たな神格が現れる。
 
 🔗 **公開URL**: https://play.bubblegumgameboy.com/Typingsoldier2/
 
@@ -24,7 +24,7 @@ python3 -m http.server 8000   # ローカルは http://localhost:8000
 
 | パス | 役割 |
 |------|------|
-| `index.html` | **新ゲーム本体**（タイピング神話討伐。1ファイル完結） |
+| `index.html` | **ゲーム本体**（クトゥルフタイピング。1ファイル完結） |
 | `typing-engine.js` | ローマ字入力エンジン（かな→ローマ字判定・IME回避。旧作から流用） |
 | `cthulhu-assets/` | クトゥルフ素材（ボス43体webp・ユニットpng・背景`bg.png`・`slash.mp3`） |
 | `DESIGN.md` | ゲーム設計書（コアループ／バランス／Firestore構造） |
@@ -61,7 +61,7 @@ python3 -m http.server 8000   # ローカルは http://localhost:8000
 | 種別 | ファイル | 用途 |
 |------|----------|------|
 | ボス（webp 43体） | `boss_cthulhu` / `boss_nyarlathotep` / `boss_hastur` ほか + 番号付き `boss01_rat`〜`boss11_*` | **日替わりボス**（43日でロスター1周） |
-| 味方ユニット（png 17種） | `unit_knight` / `paladin` / `mage` ほか | 未使用（将来の物量モード用に温存） |
+| 味方ユニット（png 17種） | `unit_knight` / `paladin` / `mage` ほか | **召喚兵士**として使用中（単語の長さで兵種が決まる） |
 | 背景 | `bg.png` | 戦場の背景として使用中 |
 | SE | `slash.mp3` | 単語完成の斬撃音として使用中 |
 
@@ -73,6 +73,5 @@ python3 -m http.server 8000   # ローカルは http://localhost:8000
 
 ## 今後の候補
 
-- 物量モード（レイド形式を検討・DESIGN.md参照）
 - Firebase匿名認証によるロック強化
 - モバイル入力対応
