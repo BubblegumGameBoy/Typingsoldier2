@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, follow">
-<title>ソルジャータイピング</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タイピング神話討伐 — 1分レイド</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-17WNKDX3ZB"></script>
 <script>
@@ -13,175 +14,243 @@
   gtag('config', 'G-17WNKDX3ZB');
 </script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #0a0a1a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  font-family: 'Courier New', monospace;
-  color: #fff;
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+:root{
+  --panel:#161b21; --panel2:#1e252e; --line:#2c3742;
+  --gold:#f3c34a; --txt:#d7e0e8; --sub:#8a99a8;
 }
-#game-wrapper { width: 800px; user-select: none; }
-#gameCanvas {
-  display: block;
-  image-rendering: pixelated;
-  border: 3px solid #334;
-  background: #1a1a2e;
+html,body{ height:100%; }
+body{
+  font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  background:#0c0f13; color:var(--txt); overflow:hidden;
+  display:flex; flex-direction:column; height:100vh; height:100dvh;
 }
-#hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 10px;
-  background: #111122;
-  border-left: 3px solid #334;
-  border-right: 3px solid #334;
-  font-size: 13px;
-}
-#boss-bar-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 3px 10px;
-  background: #0d0a18;
-  border-left: 3px solid #334;
-  border-right: 3px solid #334;
-  min-height: 20px;
-}
-#boss-bar-wrap { width: 300px; height: 12px; background: #222; border: 1px solid #553; display:none; }
-#boss-bar-fill { height: 100%; background: linear-gradient(90deg,#cc1111,#ff6600); transition: width 0.15s; }
-#boss-name { font-size: 12px; color: #ffaa22; min-width: 80px; text-align: right; display:none; }
-.info-center { display: flex; gap: 20px; font-size: 12px; color: #aaa; }
-.info-center span { color: #FFD700; }
-#typing-area {
-  padding: 10px 16px 14px;
-  background: #0d1020;
-  border: 3px solid #334;
-  border-top: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-#word-kana {
-  font-size: 30px;
-  letter-spacing: 6px;
-  color: #FFD700;
-  text-shadow: 0 0 12px #FFD70066;
-  min-height: 40px;
-}
-#word-roma { font-size: 19px; letter-spacing: 3px; min-height: 26px; }
-#roma-done { color: #4dff6e; }
-#roma-left { color: #556; }
-#type-input {
-  width: 320px; padding: 7px 14px; font-size: 16px;
-  background: #111122; border: 2px solid #445; color: #eee;
-  font-family: 'Courier New', monospace; outline: none;
-  text-align: center; letter-spacing: 2px; caret-color: #FFD700;
-}
-#type-input:focus { border-color: #FFD700; }
-#type-input.wrong { border-color: #ff4136; background: #1a0a0a; }
-#overlay {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  background: rgba(5,5,15,0.92); z-index: 20;
-}
-#overlay h1 { font-size: 42px; margin-bottom: 12px; letter-spacing: 4px; }
-#overlay .sub { font-size: 14px; color: #777; margin-bottom: 6px; }
-#overlay .howto {
-  font-size: 13px; color: #556; margin-top: 6px;
-  border: 1px solid #223; padding: 8px 16px; line-height: 1.9;
-}
-.big-btn {
-  margin-top: 16px; padding: 11px 36px; font-size: 18px;
-  font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 2px;
-  background: #FFD700; color: #000; border: none; cursor: pointer;
-}
-.big-btn:hover { background: #ffec6e; }
-#result-score { font-size: 28px; color: #FFD700; margin: 10px 0; }
+.serif{ font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP",serif; }
+
+/* ===== FIELD ===== */
+#field{ position:relative; flex:1 1 auto; overflow:hidden; min-height:0; }
+#bgImg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  object-position:bottom; z-index:0; pointer-events:none;
+  filter:brightness(.75) saturate(.85); }
+
+/* ===== BOSS ===== */
+#boss{ position:absolute; left:50%; bottom:10%; transform:translateX(-50%);
+  height:56%; z-index:5; pointer-events:none; transform-origin:bottom center; }
+#boss img{ height:100%; width:auto; max-width:80vw; object-fit:contain; object-position:bottom;
+  display:block; transform-origin:bottom center;
+  filter:drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
+@keyframes bobFly{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2.5%);} }
+#boss img{ animation:bobFly 3.2s ease-in-out infinite; }
+#boss.hit img{ animation:shake .13s; filter:brightness(1.9) saturate(1.5) drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
+@keyframes shake{ 0%{transform:translate(0,0);}25%{transform:translate(-6px,2px);}50%{transform:translate(5px,-1px);}75%{transform:translate(-3px,1px);}100%{transform:translate(0,0);} }
+#boss.dead img{ animation:none; opacity:.28; filter:saturate(0) brightness(.5); transition:all .7s; }
+#boss.dying img{ animation:die .7s forwards; }
+@keyframes die{ to{ transform:translateY(6%) rotate(8deg) scale(.9); opacity:.28; filter:saturate(0) brightness(.5);} }
+
+/* ===== BOSS PLATE (orb + name) ===== */
+#bossPlate{ position:absolute; top:3.5%; left:50%; transform:translateX(-50%);
+  z-index:8; text-align:center; pointer-events:none; }
+#bossOrb{ position:relative; width:96px; height:96px; border-radius:50%; margin:0 auto;
+  background:radial-gradient(circle at 36% 28%, #4a1414 0%, #220a0a 55%, #0a0303 100%);
+  box-shadow:inset 0 -8px 16px rgba(0,0,0,.7), inset 0 4px 10px rgba(255,150,120,.15),
+    0 0 0 2px #1c130c, 0 0 0 4px #8a6c30, 0 0 0 5px #cfab54, 0 0 0 6px #4a3718,
+    0 6px 16px rgba(0,0,0,.7), 0 0 14px rgba(255,80,60,.25);
+  overflow:hidden; }
+#bossLiquid{ position:absolute; left:0; right:0; bottom:0; height:100%;
+  background:linear-gradient(#ff6b54 0%, #e02a22 40%, #7c1212 100%);
+  box-shadow:inset 0 8px 16px rgba(255,150,110,.5), inset 0 -6px 14px rgba(0,0,0,.4);
+  transition:height .15s linear; }
+#orbGloss{ position:absolute; top:7px; left:16px; width:40px; height:26px; border-radius:50%; z-index:4;
+  background:radial-gradient(circle at 40% 40%, rgba(255,255,255,.75), rgba(255,255,255,.1) 60%, transparent 72%); }
+#bossHpText{ position:absolute; inset:0; z-index:6; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; line-height:1.15; padding-top:12px;
+  text-shadow:0 1px 3px #000,0 0 5px #000; color:#fff; }
+#hptext{ font-size:13px; font-weight:700; white-space:nowrap; }
+#hpsub{ font-size:8.5px; font-weight:600; color:#ffd9b0; margin-top:2px; white-space:nowrap; }
+#bossNameFrame{ position:relative; z-index:7; display:inline-block; margin-top:-14px;
+  max-width:min(86vw,420px); white-space:nowrap; padding:4px 24px;
+  background:linear-gradient(rgba(24,16,9,.72),rgba(8,5,3,.76));
+  border-top:1.5px solid rgba(200,150,70,.85); border-bottom:1.5px solid rgba(110,83,32,.85);
+  box-shadow:0 2px 8px rgba(0,0,0,.55); }
+#bossNameFrame::before,#bossNameFrame::after{ content:""; position:absolute; top:50%; width:8px; height:8px;
+  transform:translateY(-50%) rotate(45deg); background:linear-gradient(135deg,#d9b35a,#7a5c24); }
+#bossNameFrame::before{ left:-4px; } #bossNameFrame::after{ right:-4px; }
+.bn-epi{ display:block; font-size:10px; font-weight:600; letter-spacing:.14em; color:#e6c674; text-shadow:0 1px 2px #000; }
+.bn-main{ display:block; font-size:clamp(15px,2.6vw,19px); font-weight:800; letter-spacing:.04em;
+  color:#f0e6d2; text-shadow:0 1px 3px #000; }
+
+/* ===== HUD ===== */
+.hudBox{ position:absolute; z-index:10; background:rgba(14,18,22,.82);
+  border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12px;
+  backdrop-filter:blur(3px); }
+#hudL{ top:10px; left:10px; min-width:150px; }
+#hudR{ top:10px; right:10px; text-align:right; }
+.hudBox .row{ display:flex; justify-content:space-between; gap:14px; padding:1px 0; }
+.hudBox .k{ color:var(--sub); } .hudBox .v{ font-weight:700; }
+.vGold{ color:var(--gold); }
+
+/* ===== combo / damage pops ===== */
+#comboTag{ position:absolute; top:44%; left:16px; z-index:10; transform:translateY(-50%);
+  font-weight:800; font-size:clamp(18px,3.4vw,32px); color:#ffd24a; text-shadow:0 2px 6px #000;
+  opacity:0; transition:opacity .2s; }
+#comboTag.on{ opacity:1; }
+#comboTag small{ display:block; font-size:11px; color:var(--sub); font-weight:600; }
+.dmg{ position:absolute; z-index:9; font-weight:800; pointer-events:none;
+  text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.6); animation:flo .8s ease-out forwards; white-space:nowrap; }
+@keyframes flo{ 0%{transform:translate(-50%,0) scale(.6); opacity:0;}
+  20%{transform:translate(-50%,-14px) scale(1.1); opacity:1;}
+  100%{transform:translate(-50%,-56px) scale(1); opacity:0;} }
+.dmg.c{ color:#ffe14a; font-size:18px; }
+.dmg.w{ color:#ff9a3d; font-size:24px; }
+.clickfx{ position:absolute; z-index:8; pointer-events:none; width:90px; height:90px; }
+.clickfx::before{ content:""; position:absolute; inset:0; border-radius:50%;
+  border:4px solid transparent; border-top-color:#fff; border-right-color:#ffe96b;
+  filter:drop-shadow(0 0 6px rgba(255,235,120,.9));
+  animation:clkarc .22s ease-out forwards; }
+@keyframes clkarc{ 0%{opacity:0;transform:rotate(calc(var(--ang) - 120deg)) scale(.5);}
+  25%{opacity:1;} 100%{opacity:0;transform:rotate(calc(var(--ang) + 60deg)) scale(1.15);} }
+
+/* ===== KILL BANNER ===== */
+#killBanner{ position:absolute; top:24%; left:50%; transform:translateX(-50%); z-index:20;
+  background:rgba(10,8,4,.85); border:1px solid #f3c34a; border-radius:10px;
+  padding:10px 26px; text-align:center; pointer-events:none; opacity:0; transition:opacity .25s; }
+#killBanner.on{ opacity:1; }
+#killBanner .kb-title{ font-size:clamp(20px,4vw,30px); font-weight:900; color:#ffd24a; letter-spacing:.08em; }
+#killBanner .kb-sub{ font-size:13px; color:var(--gold); margin-top:3px; }
+
+/* ===== TIMER ===== */
+#timerBig{ position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:11;
+  font-size:15px; color:var(--sub); font-weight:700; letter-spacing:.1em;
+  background:rgba(14,18,22,.75); border:1px solid var(--line); border-radius:8px; padding:3px 14px; display:none; }
+#timerBig b{ font-size:22px; color:#fff; font-variant-numeric:tabular-nums; }
+#timerBig.warn b{ color:#ff5a4a; }
+
+/* ===== TYPE BAR ===== */
+#typebar{ flex:0 0 auto; background:var(--panel); border-top:2px solid var(--line);
+  padding:12px 16px 16px; display:flex; flex-direction:column; align-items:center; gap:5px;
+  min-height:118px; }
+#word-kana{ font-size:clamp(22px,4.4vw,32px); letter-spacing:.22em; color:var(--gold);
+  text-shadow:0 0 12px rgba(243,195,74,.35); min-height:42px; font-weight:700; }
+#word-roma{ font-size:clamp(14px,2.6vw,19px); letter-spacing:.16em; min-height:26px;
+  font-family:"Courier New",monospace; }
+#roma-done{ color:#4dff6e; } #roma-left{ color:#556270; }
+#typebar .hint{ font-size:11px; color:var(--sub); }
+#typebar.flash{ animation:tflash .18s; }
+@keyframes tflash{ 0%{background:#3a1418;} 100%{background:var(--panel);} }
+
+/* ===== OVERLAYS ===== */
+.overlay{ position:absolute; inset:0; z-index:30; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; background:rgba(5,6,10,.9); text-align:center; padding:20px; }
+.overlay h1{ font-size:clamp(26px,5vw,44px); letter-spacing:.12em; color:#f0e6d2; margin-bottom:6px; }
+.overlay .sub{ font-size:13px; color:var(--sub); margin:4px 0; line-height:1.8; }
+.gbtn{ margin-top:18px; padding:12px 44px; font-size:18px; font-weight:800; letter-spacing:.12em;
+  background:linear-gradient(#ffd76a,#e0a92e); color:#1a1206; border:1px solid #8a6c30;
+  border-radius:8px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.5); }
+.gbtn:hover{ filter:brightness(1.08); }
+.gbtn:disabled{ filter:saturate(.3) brightness(.6); cursor:not-allowed; }
+.gbtn2{ margin-top:10px; padding:8px 24px; font-size:13px; font-weight:700;
+  background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; cursor:pointer; }
+.gbtn2:hover{ border-color:var(--gold); }
+#nameIn{ margin-top:14px; padding:9px 14px; font-size:15px; width:230px; text-align:center;
+  background:#0d1117; color:#fff; border:1px solid var(--line); border-radius:8px; outline:none; user-select:text; }
+#nameIn:focus{ border-color:var(--gold); }
+#countNum{ font-size:110px; font-weight:900; color:var(--gold); text-shadow:0 0 40px rgba(243,195,74,.5); }
+
+/* result */
+#resDmg{ font-size:clamp(34px,7vw,56px); font-weight:900; color:var(--gold); margin:6px 0;
+  font-variant-numeric:tabular-nums; }
+.resCleared{ font-size:20px; font-weight:800; color:#7fdc7f; letter-spacing:.1em; }
+.resFailed{ font-size:16px; font-weight:700; color:var(--sub); }
+#rankList{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
+#rankList .rrow{ display:flex; justify-content:space-between; gap:12px; padding:3px 8px;
+  border-bottom:1px solid #1c232b; }
+#rankList .rrow.me{ background:rgba(243,195,74,.12); border-radius:4px; }
+#rankList .rname{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:190px; }
+#rankList .rdmg{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
+#rankTitle{ margin-top:16px; font-size:12px; color:var(--sub); letter-spacing:.15em; }
+
+/* audio btn */
+#audioBtn{ position:absolute; bottom:10px; right:12px; z-index:15; width:38px; height:38px;
+  border:1px solid var(--line); border-radius:50%; background:rgba(20,24,30,.85);
+  color:var(--gold); font-size:17px; cursor:pointer; line-height:1; }
 </style>
 </head>
 <body>
-<div id="game-wrapper">
-  <div style="position:relative;">
-    <canvas id="gameCanvas" width="800" height="370"></canvas>
-    <div id="scoreOverlay" style="position:absolute;top:10px;left:14px;pointer-events:none;font-family:'Arial Black',sans-serif;line-height:1;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;">
-      <div style="font-size:11px;color:#ffe680;letter-spacing:2px;font-weight:bold;">SCORE</div>
-      <div id="scoreBig" style="font-size:34px;color:#FFD700;font-weight:900;transition:transform 0.1s ease-out;transform-origin:left center;">0</div>
-      <div id="comboDisp" style="display:none;font-size:15px;color:#ff9a3d;font-weight:bold;margin-top:3px;"></div>
+
+<div id="field">
+  <img id="bgImg" src="cthulhu-assets/bg.png" alt="">
+  <div id="bossPlate">
+    <div id="bossOrb">
+      <div id="bossLiquid"></div>
+      <div id="orbGloss"></div>
+      <div id="bossHpText"><span id="hptext">--%</span><span id="hpsub"></span></div>
     </div>
-    <!-- 音声設定ボタン -->
-    <button id="audioBtn" onclick="toggleAudioPanel()" title="音声設定"
-      style="position:absolute;top:10px;right:12px;z-index:15;width:36px;height:36px;border:none;border-radius:50%;background:rgba(20,20,40,0.8);color:#FFD700;font-size:18px;cursor:pointer;line-height:1;">&#9881;</button>
-    <div id="audioPanel" style="display:none;position:absolute;top:52px;right:12px;z-index:16;width:210px;background:rgba(12,12,28,0.96);border:2px solid #445;border-radius:10px;padding:14px;font-family:'Courier New',monospace;color:#eee;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,0.5);">
-      <div style="font-weight:bold;color:#FFD700;margin-bottom:10px;letter-spacing:1px;">♪ 音声設定</div>
-      <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;">
-        <span>BGM</span>
-        <input type="checkbox" id="bgmToggle" onchange="onBgmToggle(this.checked)" style="width:18px;height:18px;cursor:pointer;">
-      </label>
-      <input type="range" id="bgmVolSlider" min="0" max="100" oninput="onBgmVol(this.value)" style="width:100%;margin-bottom:14px;cursor:pointer;">
-      <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;">
-        <span>効果音 (SE)</span>
-        <input type="checkbox" id="seToggle" onchange="onSeToggle(this.checked)" style="width:18px;height:18px;cursor:pointer;">
-      </label>
-      <input type="range" id="seVolSlider" min="0" max="100" oninput="onSeVol(this.value)" style="width:100%;cursor:pointer;">
-    </div>
-    <div id="overlay">
-      <h1 style="color:#FFD700;">ソルジャータイピング</h1>
-      <p class="sub">タイピングして兵士を召喚し、ボスを倒して５Waveクリアせよ！</p>
-      <div class="howto">
-        ワードをローマ字で入力 → 兵士召喚<br>
-        7体に1体は弓兵（遠距離攻撃）が出る<br>
-        味方が敵陣に侵入 → ボス出現！<br>
-        城壁に到達 → 城ダメージ（ボス出現後のみ）<br>
-        ボス撃破 または 敵城破壊 → Waveクリア<br>
-        Waveクリア後 → <b>Enterキー</b> で次のWaveへ<br>
-        SI / SHI どちらでもOK（入力の揺れ許容）<br>
-        <span style="color:#aaa">IME（日本語変換）はOFFにしてください</span>
-      </div>
-      <div style="margin:10px 0 4px;">
-        <input id="playerNameInput" type="text" maxlength="12" placeholder="名前を入力（12文字まで）"
-          style="padding:8px 12px;font-size:14px;border-radius:6px;border:2px solid #FFD700;background:#111;color:#fff;width:220px;text-align:center;outline:none;"
-          onkeydown="if(event.key==='Enter')startGame()">
-      </div>
-      <button class="big-btn" onclick="startGame()">START</button>
+    <div id="bossNameFrame" class="serif">
+      <span class="bn-epi" id="bossEpi">―</span>
+      <span class="bn-main" id="bossName">―</span>
     </div>
   </div>
-  <div id="hud">
-    <div style="font-size:12px;color:#aaa;">Wave <span id="waveNum" style="color:#FFD700">1</span> / 5</div>
-    <div class="info-center">
-      <span id="timerDisp">⏱ <span id="timerNum">0:00</span></span>
-    </div>
-    <div style="font-size:12px;color:#aaa;">🏰 敵城 <span id="enemyCastleHpNum" style="color:#ff4444">-</span></div>
+  <div id="boss"><img id="bossImg" src="" alt="boss"></div>
+
+  <div class="hudBox" id="hudL">
+    <div class="row"><span class="k">今日のベスト</span><span class="v vGold" id="hBest">0</span></div>
+    <div class="row"><span class="k">挑戦回数</span><span class="v" id="hTries">0</span></div>
   </div>
-  <div id="enemy-castle-bar-row" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:2px 10px;background:#0d0a18;border-left:3px solid #334;border-right:3px solid #334;min-height:14px;">
-    <span style="font-size:10px;color:#ff6666;">敵城HP</span>
-    <div id="enemy-castle-bar-wrap" style="width:160px;height:8px;background:#222;border:1px solid #553;"><div id="enemy-castle-bar-fill" style="height:100%;background:linear-gradient(90deg,#cc1111,#ff6600);width:100%;transition:width 0.15s;"></div></div>
+  <div class="hudBox" id="hudR">
+    <div class="row"><span class="k">通算討伐</span><span class="v vGold" id="hClears">0</span></div>
+    <div class="row"><span class="k">連続討伐</span><span class="v" id="hStreak">0日</span></div>
   </div>
-  <div id="boss-bar-row">
-    <span id="boss-name"></span>
-    <div id="boss-bar-wrap"><div id="boss-bar-fill" style="width:100%"></div></div>
-    <span id="boss-hp-txt" style="font-size:11px;color:#ffaa22;display:none"></span>
-  </div>
-  <div id="typing-area">
-    <div id="word-kana">－</div>
-    <div id="word-roma"><span id="roma-done"></span><span id="roma-left" style="color:#445">ここにワードが出ます</span></div>
-    <input id="type-input" type="text" autocomplete="off" spellcheck="false"
-           inputmode="latin" placeholder="ローマ字で入力" readonly
-           style="caret-color:transparent;cursor:default;">
-  </div>
+
+  <div id="comboTag"><span id="comboN"></span><small id="comboM"></small></div>
+  <div id="timerBig">TIME <b id="timeLeft">60</b></div>
+  <div id="killBanner"><div class="kb-title">討 伐 ！</div><div class="kb-sub" id="kbSub"></div></div>
+  <button id="audioBtn" title="サウンド">♪</button>
+</div>
+
+<div id="typebar">
+  <div id="word-kana">－</div>
+  <div id="word-roma"><span id="roma-done"></span><span id="roma-left"></span></div>
+  <div class="hint">ローマ字で入力（IMEはOFFのままでOK / 変換中でも打てます）</div>
+</div>
+
+<!-- ===== overlays ===== -->
+<div class="overlay" id="ovTitle">
+  <h1 class="serif">タイピング神話討伐</h1>
+  <div class="sub">今日の神格を、60秒のタイピングで討て。<br>
+    1打ごとにダメージ。コンボをつなげば火力が上がる。<br>
+    討伐できたら今日はクリア。<b style="color:var(--gold)">また明日、新たな神格が現れる。</b></div>
+  <div class="sub serif" id="ovTodayBoss" style="color:#e6c674;font-size:15px;"></div>
+  <input id="nameIn" maxlength="12" placeholder="なまえ（ランキング用）">
+  <button class="gbtn" id="btnStart">挑 戦 す る</button>
+  <div class="sub" style="margin-top:10px;font-size:11px;">Enterでも開始 ／ 記録は自動送信されます</div>
+</div>
+
+<div class="overlay" id="ovCount" style="display:none;"><div id="countNum">3</div></div>
+
+<div class="overlay" id="ovResult" style="display:none;">
+  <div id="resState" class="resCleared">討伐成功！</div>
+  <div class="sub">今回のダメージ</div>
+  <div id="resDmg">0</div>
+  <div class="sub" id="resDetail"></div>
+  <button class="gbtn" id="btnRetry">もう一回（Enter）</button>
+  <div id="rankTitle">─ 本日の討伐者ランキング ─</div>
+  <div id="rankList"><div class="sub">読み込み中…</div></div>
+</div>
+
+<div class="overlay" id="ovLocked" style="display:none;">
+  <h1 class="serif" style="color:#7fdc7f;">討 伐 完 了</h1>
+  <div class="sub serif" id="lockBossName" style="font-size:15px;color:#e6c674;"></div>
+  <div class="sub">今日の神格はもう倒した。<br><b style="color:var(--gold)">明日、新たな神格が現れる──</b></div>
+  <div class="sub" id="lockStats"></div>
+  <div id="rankTitle">─ 本日の討伐者ランキング ─</div>
+  <div id="rankList2" style="margin-top:8px;"></div>
 </div>
 
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyBhMkq24FzmHjnJu0OQ7SeQgEV__eY9iGo",
   authDomain: "bubble-wars-ffcd4.firebaseapp.com",
@@ -190,2535 +259,484 @@ const firebaseConfig = {
   messagingSenderId: "465836224399",
   appId: "1:465836224399:web:8852c314794cfc69a025fa"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window._submitScore = async function(name, score, wave) {
-  try {
-    await addDoc(collection(db, 'scores'), {
-      name, score, wave,
-      date: new Date().toLocaleDateString('ja-JP'),
-      timestamp: serverTimestamp()
-    });
-  } catch(e) { console.warn('score submit failed', e); }
-};
+try {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window._submitRaid = async (rec) => {
+    try {
+      await addDoc(collection(db, 'scores'), { ...rec, ts: serverTimestamp() });
+    } catch(e){ console.warn('submit failed', e); }
+  };
+  // 等価フィルタのみ（複合インデックス不要）。整列・uid重複除去はクライアント側。
+  window._fetchRaidRanking = async (date) => {
+    try {
+      const snap = await getDocs(query(collection(db,'scores'),
+        where('mode','==','raid1min'), where('date','==',date)));
+      const best = new Map();
+      snap.forEach(d => {
+        const r = d.data();
+        const cur = best.get(r.uid);
+        if (!cur || (r.damage||0) > cur.damage) best.set(r.uid, {name:r.name||'？', damage:r.damage||0, cleared:!!r.cleared});
+      });
+      return [...best.entries()].map(([uid,v])=>({uid,...v})).sort((a,b)=>b.damage-a.damage);
+    } catch(e){ console.warn('ranking failed', e); return null; }
+  };
+} catch(e){ console.warn('firebase init failed', e); }
 </script>
 
+<script src="typing-engine.js"></script>
 <script>
+'use strict';
 // ═══════════════════════════════════════════════
-// AUDIO
+// 定数（バランスノブ）— DESIGN.md §5 参照
 // ═══════════════════════════════════════════════
+const DEBUG = new URLSearchParams(location.search).has('debug');
+const RUN_SECONDS   = DEBUG ? 15 : 60;      // 1プレイ長
+const BOSS_HP       = DEBUG ? 1500 : 7000;  // 討伐ライン（全ボス共通・低め＝救済）
+const DMG_BASE      = 100;                  // 正解1打あたり
+const COMBO_STEP    = 0.02;                 // コンボ1につき+2%
+const COMBO_CAP     = 50;                   // 上限コンボ（=最大×2.0）
+const WORD_BONUS    = 200;                  // 単語完成ボーナス
+const KILL_BONUS    = 2000;                 // 討伐ボーナス（定額・クリア救済）
+
+// ═══════════════════════════════════════════════
+// ボス・ロスター（cthulhu-assets 43体）
+// ═══════════════════════════════════════════════
+const ROSTER = [
+  {id:'boss01_rat',        f:'boss01_rat.webp',        epi:'下水に蠢くもの',            name:'穢れの巨鼠'},
+  {id:'boss02_nightwing',  f:'boss02_nightwing.webp',  epi:'夜を裂く翼',                name:'ナイトウィング'},
+  {id:'boss03_direbird',   f:'boss03_direbird.webp',   epi:'凶兆を運ぶ怪鳥',            name:'ダイアバード'},
+  {id:'boss03_sanddweller',f:'boss03_sanddweller.webp',epi:'砂丘に潜むもの',            name:'サンドドウェラー'},
+  {id:'boss04_blob',       f:'boss04_blob.webp',       epi:'不定形の宴',                name:'蠢く肉塊'},
+  {id:'boss05_hunter',     f:'boss05_hunter.webp',     epi:'闇の狩人',                  name:'ハンター'},
+  {id:'boss06_flame',      f:'boss06_flame.webp',      epi:'焔の眷属',                  name:'フレイムスポーン'},
+  {id:'boss07_skyfiend',   f:'boss07_skyfiend.webp',   epi:'天空を穢すもの',            name:'スカイフィーンド'},
+  {id:'boss08_hound',      f:'boss08_hound.webp',      epi:'冒涜の猟犬',                name:'ヘルハウンド'},
+  {id:'boss09_beast',      f:'boss09_beast.webp',      epi:'太古の魔獣',                name:'エルダービースト'},
+  {id:'boss10_stormgod',   f:'boss10_stormgod.webp',   epi:'嵐を統べるもの',            name:'ストームゴッド'},
+  {id:'boss11_eldermind',  f:'boss11_eldermind.webp',  epi:'古き意思',                  name:'エルダーマインド'},
+  {id:'boss11_shantak',    f:'boss11_shantak.webp',    epi:'星間を翔るもの',            name:'シャンタク鳥'},
+  {id:'boss_ghoul',        f:'boss_ghoul.webp',        epi:'屍肉を喰らうもの',          name:'グール'},
+  {id:'boss_ghast',        f:'boss_ghast.webp',        epi:'地底の跳梁者',              name:'ガスト'},
+  {id:'boss_deepone',      f:'boss_deepone.webp',      epi:'海淵より来たる民',          name:'深きものども'},
+  {id:'boss_serpentman',   f:'boss_serpentman.webp',   epi:'太古の蛇人',                name:'サーペントマン'},
+  {id:'boss_nightgaunt',   f:'boss_nightgaunt.webp',   epi:'顔なき夜駆け',              name:'ナイトゴーント'},
+  {id:'boss_gug',          f:'boss_gug.webp',          epi:'禁忌の巨人',                name:'ガグ'},
+  {id:'boss_moonbeast',    f:'boss_moonbeast.webp',    epi:'月の裏の商人',              name:'ムーンビースト'},
+  {id:'boss_hunter2',      f:'boss_hunter2.webp',      epi:'闇を狩るもの',              name:'ブラックハンター'},
+  {id:'boss_hellplant',    f:'boss_hellplant.webp',    epi:'冒涜の花',                  name:'ヘルプラント'},
+  {id:'boss_formless',     f:'boss_formless.webp',     epi:'無形の落とし子',            name:'フォームレス・スポーン'},
+  {id:'boss_iwife',        f:'boss_iwife.webp',        epi:'忌まわしき花嫁',            name:'インスマスの妻'},
+  {id:'boss_gogfhoul',     f:'boss_gogfhoul.webp',     epi:'墓穴の王',                  name:'ゴグ＝フール'},
+  {id:'boss_objectx',      f:'boss_objectx.webp',      epi:'分類不能存在',              name:'物体Ｘ'},
+  {id:'boss_aihot',        f:'boss_aihot.webp',        epi:'迷宮に潜む卵',              name:'アイホート'},
+  {id:'boss_migo',         f:'boss_migo.webp',         epi:'外宇宙の菌類',              name:'ミ＝ゴ'},
+  {id:'boss_shaggai',      f:'boss_shaggai.webp',      epi:'シャッガイよりの昆虫',      name:'シャン'},
+  {id:'boss_shantak2',     f:'boss_shantak2.webp',     epi:'星風に乗るもの',            name:'大シャンタク'},
+  {id:'boss_tindalos',     f:'boss_tindalos.webp',     epi:'角度より来たるもの',        name:'ティンダロスの猟犬'},
+  {id:'boss_chaugnar',     f:'boss_chaugnar.webp',     epi:'血を啜る長鼻',              name:'チャウグナル・ファウグン'},
+  {id:'boss_glaaki',       f:'boss_glaaki.webp',       epi:'湖底より棘を伸ばすもの',    name:'グラーキ'},
+  {id:'boss_mordiggian',   f:'boss_mordiggian.webp',   epi:'屍食の神',                  name:'モルディギアン'},
+  {id:'boss_igoronak',     f:'boss_igoronak.webp',     epi:'罪深き手',                  name:'イゴーロナク'},
+  {id:'boss_iselder',      f:'boss_iselder.webp',      epi:'南極の古きもの',            name:'エルダーシング'},
+  {id:'boss_tawil',        f:'boss_tawil.webp',        epi:'永劫の門守',                name:'タウィル・アト＝ウムル'},
+  {id:'boss_tsathoggua',   f:'boss_tsathoggua.webp',   epi:'眠りこける漆黒',            name:'ツァトゥグァ'},
+  {id:'boss_cthugha',      f:'boss_cthugha.webp',      epi:'生ける焔',                  name:'クトゥグア'},
+  {id:'boss_blackgoat',    f:'boss_blackgoat.webp',    epi:'千の仔を孕む森の黒山羊',    name:'シュブ＝ニグラス'},
+  {id:'boss_hastur',       f:'boss_hastur.webp',       epi:'名状すべからざるもの',      name:'ハスター'},
+  {id:'boss_nyarlathotep', f:'boss_nyarlathotep.webp', epi:'這い寄る混沌',              name:'ニャルラトホテプ'},
+  {id:'boss_cthulhu',      f:'boss_cthulhu.webp',      epi:'深淵に眠る大いなる夢',      name:'クトゥルフ'},
+];
+
+// ═══════════════════════════════════════════════
+// 単語プール（旧ソルジャータイピングの全Waveを統合・重複除去）
+// ═══════════════════════════════════════════════
+const WORDS_RAW = [
+  'ねこ','いぬ','やま','かわ','そら','うみ','はな','つき','ほし','くも','かぜ','みず','ゆき','もり','あめ','いわ',
+  'はる','なつ','あき','ふゆ','とり','むし','くさ','つち','ひ','かみ','まち','さか','ふね','むら',
+  'さくら','りんご','たいこ','かがみ','つるぎ','ゆうしゃ','ほのお','でんしゃ','おにぎり','かみなり','たいよう','こうえん',
+  'はるかぜ','ゆうやけ','たなばた','ひかり','くだもの','たから','おかし','みなと','かいがら','すなはま','ながれ','かがやき',
+  'あおぞら','たいけい','しろくま','ふるさと','にじいろ','ひるやすみ',
+  'むてき','たたかい','さむらい','まもの','せいけん','はがね','くのいち','しにがみ','もうこう','せいれい','てきたい','げんかい',
+  'えいゆう','かたな','ほうろう','いくさ','つわもの','けもの','のろい','やいば','きずな','まじない','ちから','たましい',
+  'おうさま','りゅうせい','まほうし','あくりょく','せんとう',
+  'まおう','あんこく','よろい','りゅうき','やみ','おうじゃ','けんし','ちょうぜつ','どうぐ','ぐんだん','しょうき','まじん',
+  'きょうふ','あくたい','くらやみ','もうりょう','はめつ','えんま','じごく','あくりょう','いんが','ゆうべ','あくむ','はくや','けだもの',
+  'かみさま','てんし','せいや','えいこう','しんわ','きゅうてん','てんくう','おおぞら','げんそう','しんせい','えいえん',
+  'むげん','りそう','てんのう','きせき','せいてん','みらい','あけぼの','れんげ','しんぴ','ほうこう','かいてん','とわ','たいら','むびょう',
+];
+const WORDS = [...new Set(WORDS_RAW)];
+
+// ═══════════════════════════════════════════════
+// 日替わり（JST基準・決定的）
+// ═══════════════════════════════════════════════
+function jstNow(){ return new Date(Date.now() + 9*3600e3); }
+function jstDayIndex(){ return Math.floor((Date.now() + 9*3600e3) / 86400e3); }
+function jstDateStr(){ return jstNow().toISOString().slice(0,10); }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+const TODAY      = jstDateStr();
+const TODAY_BOSS = ROSTER[jstDayIndex() % ROSTER.length];
+
+// 今日の出題順（全員同じ＝公平）。足りなければ繰り返し。
+function todaysWordOrder(){
+  const rng = mulberry32((jstDayIndex() * 2654435761) >>> 0);
+  const arr = [...WORDS];
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(rng() * (i+1)); [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════════
+// プロフィール（localStorage）
+// ═══════════════════════════════════════════════
+function loadProfile(){
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem('ts2_profile')); } catch(e){}
+  if (!p || !p.uid) {
+    p = { uid: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2,10),
+          name:'', totalClears:0, streak:0, lastClearDate:'', bestAll:0 };
+  }
+  return p;
+}
+function saveProfile(){ try { localStorage.setItem('ts2_profile', JSON.stringify(profile)); } catch(e){} }
+function loadDaily(){
+  try { const d = JSON.parse(localStorage.getItem('ts2_daily_' + TODAY)); if (d) return d; } catch(e){}
+  return { best:0, tries:0, cleared:false };
+}
+function saveDaily(){ try { localStorage.setItem('ts2_daily_' + TODAY, JSON.stringify(daily)); } catch(e){} }
+
+let profile = loadProfile();
+let daily   = loadDaily();
+
+// ═══════════════════════════════════════════════
+// SE（WebAudio・依存ファイルなし）＋ 斬撃mp3
+// ═══════════════════════════════════════════════
+let audioOn = true;
 let _ac = null;
-let _seGain = null;
-function getAC() {
-  if (!_ac) {
-    try {
-      _ac = new (window.AudioContext || window.webkitAudioContext)();
-      _seGain = _ac.createGain();
-      _seGain.gain.value = audioSettings.seOn ? audioSettings.seVol * SE_BOOST : 0;
-      _seGain.connect(_ac.destination);
-    } catch(e){}
-  }
-  return _ac;
-}
-function seOut() { getAC(); return _seGain || _ac.destination; }
-
-// 効果音を増幅・BGMを減衰する係数（スライダー値に掛ける）
-const SE_BOOST = 2.2;
-const BGM_SCALE = 0.5;
-
-// ── 音声設定（localStorage 永続化） ──
-const audioSettings = (() => {
-  const def = { bgmOn: true, seOn: true, bgmVol: 0.5, seVol: 0.7 };
-  try {
-    const s = JSON.parse(localStorage.getItem('soldiertypingAudio') || '{}');
-    return Object.assign(def, s);
-  } catch { return def; }
-})();
-function saveAudioSettings() {
-  try { localStorage.setItem('soldiertypingAudio', JSON.stringify(audioSettings)); } catch {}
-}
-function applySeSettings() {
-  if (_seGain) _seGain.gain.value = audioSettings.seOn ? audioSettings.seVol * SE_BOOST : 0;
-}
-
-// ═══════════════════════════════════════════════
-// BGM マネージャ（フェードイン／アウト付き）
-// ═══════════════════════════════════════════════
-const BGM_FILES = {
-  wave1:  'audio/wave1.mp3',
-  normal: 'audio/Wave2-4 - Normal song.mp3',
-  boss2:  'audio/Wave2 - BOSS FIGHT.mp3',
-  boss3:  'audio/Wave3 - Boss fight.mp3',
-  boss5:  'audio/Wave5 -Boss fight.mp3',
-  demon:  'audio/Wave3 - Boss fight.mp3',
-  hero:   'audio/Wave4 - 勇者誕生.mp3',
-};
-const _bgmEls = {};
-function _getBgmEl(key) {
-  if (!_bgmEls[key]) {
-    const el = new Audio(encodeURI(BGM_FILES[key]));
-    el.preload = 'auto';
-    el.loop = true;
-    el.volume = 0;
-    _bgmEls[key] = el;
-  }
-  return _bgmEls[key];
-}
-let _bgmCurrent = null;       // 現在再生中のキー
-let _bgmFadeTimers = {};
-function _fade(el, from, to, ms, after) {
-  const key = el.src;
-  if (_bgmFadeTimers[key]) clearInterval(_bgmFadeTimers[key]);
-  const steps = Math.max(1, Math.round(ms / 50));
-  let i = 0;
-  el.volume = Math.max(0, Math.min(1, from));
-  _bgmFadeTimers[key] = setInterval(() => {
-    i++;
-    const t = i / steps;
-    el.volume = Math.max(0, Math.min(1, from + (to - from) * t));
-    if (i >= steps) {
-      clearInterval(_bgmFadeTimers[key]);
-      _bgmFadeTimers[key] = null;
-      if (after) after();
-    }
-  }, 50);
-}
-// key を再生。fadeMs でクロスフェード。loop=false なら再生終了時 onEnd を呼ぶ
-function playBGM(key, opts = {}) {
-  const { fadeMs = 2000, loop = true, onEnd = null, restart = true } = opts;
-  if (!audioSettings.bgmOn) { _bgmCurrent = key; return; }
-  const target = audioSettings.bgmVol * BGM_SCALE;
-  // 現在の曲をフェードアウト＆停止
-  const prevKey = _bgmCurrent;
-  if (prevKey && prevKey !== key) {
-    const prev = _getBgmEl(prevKey);
-    _fade(prev, prev.volume, 0, fadeMs, () => { try { prev.pause(); } catch{} });
-  }
-  _bgmCurrent = key;
-  const el = _getBgmEl(key);
-  el.loop = loop;
-  el.onended = null;
-  if (!loop && onEnd) {
-    el.onended = () => { onEnd(); };
-  }
-  if (restart || el.paused) { try { el.currentTime = 0; } catch{} }
-  const p = el.play();
-  if (p && p.catch) p.catch(()=>{});
-  _fade(el, prevKey === key ? el.volume : 0, target, fadeMs);
-}
-function stopBGM(fadeMs = 1500) {
-  if (!_bgmCurrent) return;
-  const el = _getBgmEl(_bgmCurrent);
-  _fade(el, el.volume, 0, fadeMs, () => { try { el.pause(); } catch{} });
-  _bgmCurrent = null;
-}
-function applyBgmVolume() {
-  if (_bgmCurrent && audioSettings.bgmOn) {
-    const el = _getBgmEl(_bgmCurrent);
-    el.volume = audioSettings.bgmVol * BGM_SCALE;
-  }
-}
-function setBgmEnabled(on) {
-  audioSettings.bgmOn = on;
-  if (!on) {
-    Object.values(_bgmEls).forEach(el => { try { el.pause(); } catch{} });
-  } else if (_bgmCurrent) {
-    const key = _bgmCurrent;
-    _bgmCurrent = null;
-    playBGM(key, { fadeMs: 800, restart: false });
-  }
-  saveAudioSettings();
-}
-
-// ── 設定パネル UI 制御 ──
-function toggleAudioPanel() {
-  const p = document.getElementById('audioPanel');
-  const open = p.style.display === 'none' || !p.style.display;
-  p.style.display = open ? 'block' : 'none';
-  if (open) syncAudioPanel();
-}
-function syncAudioPanel() {
-  const bt = document.getElementById('bgmToggle');
-  const st = document.getElementById('seToggle');
-  const bv = document.getElementById('bgmVolSlider');
-  const sv = document.getElementById('seVolSlider');
-  if (bt) bt.checked = audioSettings.bgmOn;
-  if (st) st.checked = audioSettings.seOn;
-  if (bv) bv.value = Math.round(audioSettings.bgmVol * 100);
-  if (sv) sv.value = Math.round(audioSettings.seVol * 100);
-}
-function onBgmToggle(on) { setBgmEnabled(on); }
-function onSeToggle(on) {
-  audioSettings.seOn = on;
-  applySeSettings();
-  saveAudioSettings();
-  if (on) tone(880, 0.08, 'sine', 0.06); // テスト音
-}
-function onBgmVol(v) {
-  audioSettings.bgmVol = v / 100;
-  applyBgmVolume();
-  saveAudioSettings();
-}
-function onSeVol(v) {
-  audioSettings.seVol = v / 100;
-  applySeSettings();
-  saveAudioSettings();
-}
-function tone(freq, dur, type='sine', vol=0.07, freqEnd=null) {
-  const a = getAC(); if (!a) return;
-  const o = a.createOscillator(), g = a.createGain();
-  o.connect(g); g.connect(seOut());
+function ac(){ if (!_ac) { try { _ac = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } return _ac; }
+function blip(freq, dur=0.05, vol=0.12, type='square'){
+  if (!audioOn) return; const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
   o.type = type; o.frequency.value = freq;
-  if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, a.currentTime + dur * 0.8);
-  g.gain.setValueAtTime(vol, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + dur);
-  o.start(a.currentTime); o.stop(a.currentTime + dur);
+  g.gain.setValueAtTime(vol, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+  o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + dur);
 }
-function playKey()   { tone(750 + Math.random()*150, 0.07, 'sine', 0.06, 1050 + Math.random()*200); }
-function playWord()  {
-  const a = getAC(); if (!a) return;
-  [523,659,784,1047].forEach((f,i) => {
-    const o=a.createOscillator(),g=a.createGain(); o.connect(g); g.connect(seOut());
-    o.type='sine'; o.frequency.value=f;
-    const t=a.currentTime+i*0.06;
-    g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
-    o.start(t); o.stop(t+0.28);
-  });
+const slashSe = new Audio('cthulhu-assets/slash.mp3'); slashSe.volume = 0.5;
+function playSlash(){ if (!audioOn) return; try { slashSe.currentTime = 0; slashSe.play().catch(()=>{}); } catch(e){} }
+
+// ═══════════════════════════════════════════════
+// DOM
+// ═══════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const bossEl = $('boss'), bossImg = $('bossImg');
+
+// ═══════════════════════════════════════════════
+// ゲーム状態
+// ═══════════════════════════════════════════════
+let state = 'title';   // title | countdown | playing | result | locked
+let run = null;        // 進行中の1プレイ
+let wordOrder = todaysWordOrder();
+
+function newRun(){
+  return {
+    damage: 0, bossHp: BOSS_HP, killed: false,
+    combo: 0, maxCombo: 0, typedChars: 0, missChars: 0, wordsDone: 0,
+    wordIdx: 0, word: null, endAt: 0, timerId: null,
+  };
 }
-function playWrong() { tone(220, 0.08, 'square', 0.04, 160); }
-function playWave()  {
-  const a = getAC(); if (!a) return;
-  [392,494,587].forEach((f,i) => {
-    const o=a.createOscillator(),g=a.createGain(); o.connect(g); g.connect(seOut());
-    o.type='sawtooth'; o.frequency.value=f;
-    const t=a.currentTime+i*0.1;
-    g.gain.setValueAtTime(0.06,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
-    o.start(t); o.stop(t+0.25);
-  });
+
+function setBossVisual(){
+  bossImg.src = 'cthulhu-assets/' + TODAY_BOSS.f;
+  $('bossEpi').textContent  = TODAY_BOSS.epi;
+  $('bossName').textContent = TODAY_BOSS.name;
 }
-function playHeroFanfare() {
-  const a = getAC(); if (!a) return;
-  // ファンファーレ: 勇者登場テーマ (約2.5秒)
-  const notes = [
-    [523,0.00],[659,0.15],[784,0.30],[1047,0.45], // 上昇アルペジオ
-    [880,0.70],[988,0.85],[1047,1.00],[1175,1.20], // 2段目
-    [1319,1.45],[1175,1.65],[1047,1.85],[784,2.00], // クライマックス下降
-    [523,2.20],[659,2.35],[784,2.55],               // 締め
-  ];
-  notes.forEach(([freq, delay]) => {
-    const o=a.createOscillator(),g=a.createGain();
-    o.connect(g); g.connect(seOut());
-    o.type='square'; o.frequency.value=freq;
-    const t=a.currentTime+delay;
-    g.gain.setValueAtTime(0.09,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
-    o.start(t); o.stop(t+0.2);
-  });
-  // 和音ベース
-  [[131,0.00],[165,0.70],[196,1.45],[131,2.20]].forEach(([freq,delay]) => {
-    const o=a.createOscillator(),g=a.createGain();
-    o.connect(g); g.connect(seOut());
-    o.type='sine'; o.frequency.value=freq;
-    const t=a.currentTime+delay;
-    g.gain.setValueAtTime(0.07,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
-    o.start(t); o.stop(t+0.5);
-  });
-  // ドラムロール（着地衝撃）
-  [0.00,0.03,0.06,0.09,0.12,0.80,0.83,0.86,1.45,1.48].forEach(delay => {
-    const o=a.createOscillator(),g=a.createGain();
-    o.connect(g); g.connect(seOut());
-    o.type='sawtooth'; o.frequency.value=80;
-    const t=a.currentTime+delay;
-    g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
-    o.start(t); o.stop(t+0.06);
-  });
+
+function comboMult(c){ return 1 + COMBO_STEP * Math.min(c, COMBO_CAP); }
+
+// ═══════════════════════════════════════════════
+// HUD更新
+// ═══════════════════════════════════════════════
+function fmt(n){ return n.toLocaleString('ja-JP'); }
+function updateHud(){
+  $('hBest').textContent  = fmt(daily.best);
+  $('hTries').textContent = daily.tries;
+  $('hClears').textContent = profile.totalClears;
+  $('hStreak').textContent = profile.streak + '日';
 }
-function playBossSpawn() {
-  const a = getAC(); if (!a) return;
-  [220,196,165,147].forEach((f,i) => {
-    const o=a.createOscillator(),g=a.createGain(); o.connect(g); g.connect(seOut());
-    o.type='sawtooth'; o.frequency.value=f;
-    const t=a.currentTime+i*0.12;
-    g.gain.setValueAtTime(0.12,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-    o.start(t); o.stop(t+0.35);
-  });
+function updateOrb(){
+  const hp = run ? Math.max(0, run.bossHp) : BOSS_HP;
+  const pct = Math.round(hp / BOSS_HP * 100);
+  $('bossLiquid').style.height = pct + '%';
+  $('hptext').textContent = pct + '%';
+  $('hpsub').textContent = run && run.killed ? 'オーバーキル中' : fmt(hp);
 }
-function playDemonBirth() {
-  const a = getAC(); if (!a) return;
-  // 地響き（上昇する重低音スイープ）
-  const o1 = a.createOscillator(), g1 = a.createGain();
-  o1.connect(g1); g1.connect(seOut());
-  o1.type = 'sawtooth';
-  o1.frequency.setValueAtTime(35, a.currentTime);
-  o1.frequency.exponentialRampToValueAtTime(110, a.currentTime + 1.4);
-  g1.gain.setValueAtTime(0.0001, a.currentTime);
-  g1.gain.exponentialRampToValueAtTime(0.18, a.currentTime + 0.6);
-  g1.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 1.8);
-  o1.start(a.currentTime); o1.stop(a.currentTime + 1.9);
-  // 不気味な金属的ヒット
-  [[110,0.0],[146,0.45],[110,0.9],[73,1.35]].forEach(([f,d]) => {
-    const o=a.createOscillator(), g=a.createGain();
-    o.connect(g); g.connect(seOut());
-    o.type='square'; o.frequency.value=f;
-    const t=a.currentTime+d;
-    g.gain.setValueAtTime(0.09,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
-    o.start(t); o.stop(t+0.45);
-  });
-  // 爆誕インパクト
-  const o2=a.createOscillator(), g2=a.createGain();
-  o2.connect(g2); g2.connect(seOut());
-  o2.type='sawtooth'; o2.frequency.setValueAtTime(180, a.currentTime+1.3);
-  o2.frequency.exponentialRampToValueAtTime(40, a.currentTime+1.7);
-  g2.gain.setValueAtTime(0.2, a.currentTime+1.3);
-  g2.gain.exponentialRampToValueAtTime(0.001, a.currentTime+1.8);
-  o2.start(a.currentTime+1.3); o2.stop(a.currentTime+1.85);
-}
-function playBossDie() {
-  const a = getAC(); if (!a) return;
-  [330,392,494,659,880].forEach((f,i) => {
-    const o=a.createOscillator(),g=a.createGain(); o.connect(g); g.connect(seOut());
-    o.type='sine'; o.frequency.value=f;
-    const t=a.currentTime+i*0.09;
-    g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-    o.start(t); o.stop(t+0.35);
-  });
+function updateCombo(){
+  const el = $('comboTag');
+  if (run && run.combo >= 5) {
+    el.classList.add('on');
+    $('comboN').textContent = run.combo + ' COMBO';
+    $('comboM').textContent = '×' + comboMult(run.combo).toFixed(2);
+  } else el.classList.remove('on');
 }
 
 // ═══════════════════════════════════════════════
-// ROMAJI
+// 演出
 // ═══════════════════════════════════════════════
-// かな→ローマ字テーブル（ヘボン式・訓令式の両方を許容。先頭がデフォルト表示）
-const KANA_ROMA = {
-  'あ':['a'],'い':['i'],'う':['u'],'え':['e'],'お':['o'],
-  'か':['ka'],'き':['ki'],'く':['ku'],'け':['ke'],'こ':['ko'],
-  'が':['ga'],'ぎ':['gi'],'ぐ':['gu'],'げ':['ge'],'ご':['go'],
-  'さ':['sa'],'し':['shi','si'],'す':['su'],'せ':['se'],'そ':['so'],
-  'ざ':['za'],'じ':['ji','zi'],'ず':['zu'],'ぜ':['ze'],'ぞ':['zo'],
-  'た':['ta'],'ち':['chi','ti'],'つ':['tsu','tu'],'て':['te'],'と':['to'],
-  'だ':['da'],'ぢ':['ji','di'],'づ':['zu','du'],'で':['de'],'ど':['do'],
-  'な':['na'],'に':['ni'],'ぬ':['nu'],'ね':['ne'],'の':['no'],
-  'は':['ha'],'ひ':['hi'],'ふ':['fu','hu'],'へ':['he'],'ほ':['ho'],
-  'ば':['ba'],'び':['bi'],'ぶ':['bu'],'べ':['be'],'ぼ':['bo'],
-  'ぱ':['pa'],'ぴ':['pi'],'ぷ':['pu'],'ぺ':['pe'],'ぽ':['po'],
-  'ま':['ma'],'み':['mi'],'む':['mu'],'め':['me'],'も':['mo'],
-  'や':['ya'],'ゆ':['yu'],'よ':['yo'],
-  'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
-  'わ':['wa'],'ゐ':['i'],'ゑ':['e'],'を':['wo','o'],'ん':['nn','n'],
-  'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],
-  'しゃ':['sha','sya'],'しゅ':['shu','syu'],'しょ':['sho','syo'],
-  'ちゃ':['cha','tya'],'ちゅ':['chu','tyu'],'ちょ':['cho','tyo'],
-  'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
-  'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],
-  'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
-  'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],
-  'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
-  'じゃ':['ja','zya'],'じゅ':['ju','zyu'],'じょ':['jo','zyo'],
-  'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
-  'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],
-  'ふぁ':['fa'],'ふぃ':['fi'],'ふぇ':['fe'],'ふぉ':['fo'],
-  'うぃ':['wi'],'うぇ':['we'],
-  'ー':['']
-};
-// かなを単位ごとの「許容ローマ字配列」リストに分解（っ＝促音・小書きyouon対応）
-function kanaUnits(kana) {
-  const raw = [];
-  let i = 0;
-  while (i < kana.length) {
-    const two = kana.substr(i, 2);
-    if (KANA_ROMA[two]) { raw.push(two); i += 2; }
-    else { raw.push(kana[i]); i += 1; }
-  }
-  const out = [];
-  let dbl = false;
-  for (const u of raw) {
-    if (u === 'っ') { dbl = true; continue; }
-    let vars = (KANA_ROMA[u] || [u]).slice();
-    if (dbl) {
-      vars = vars.map(v => {
-        const c = v[0];
-        return (/[a-z]/.test(c) && !'aiueo'.includes(c)) ? c + v : v;
-      });
-      dbl = false;
-    }
-    out.push(vars);
-  }
-  return out;
+function bossRect(){ return bossEl.getBoundingClientRect(); }
+function fieldRect(){ return $('field').getBoundingClientRect(); }
+function popDamage(amount, big){
+  const fr = fieldRect(), br = bossRect();
+  const el = document.createElement('div');
+  el.className = 'dmg ' + (big ? 'w' : 'c');
+  el.textContent = fmt(amount);
+  el.style.left = (br.left - fr.left + br.width * (0.3 + Math.random()*0.4)) + 'px';
+  el.style.top  = (br.top - fr.top + br.height * (0.15 + Math.random()*0.35)) + 'px';
+  $('field').appendChild(el);
+  setTimeout(() => el.remove(), 850);
 }
-// 入力がunitsの有効な接頭辞か判定: 'complete' | 'partial' | 'no'
-function kanaMatch(units, input) {
-  function rec(ui, si) {
-    if (si === input.length) return ui === units.length ? 'complete' : 'partial';
-    if (ui === units.length) return 'no';
-    let res = 'no';
-    for (const v of units[ui]) {
-      if (v && input.startsWith(v, si)) {
-        const r = rec(ui + 1, si + v.length);
-        if (r === 'complete') return 'complete';
-        if (r === 'partial') res = 'partial';
-      } else if (v.startsWith(input.slice(si))) {
-        res = 'partial';
-      }
-    }
-    return res;
-  }
-  return rec(0, 0);
+function slashFx(){
+  const fr = fieldRect(), br = bossRect();
+  const el = document.createElement('div');
+  el.className = 'clickfx';
+  el.style.setProperty('--ang', Math.floor(Math.random()*360) + 'deg');
+  el.style.left = (br.left - fr.left + br.width*0.5 - 45 + (Math.random()-0.5)*60) + 'px';
+  el.style.top  = (br.top - fr.top + br.height*0.35 - 45 + (Math.random()-0.5)*50) + 'px';
+  $('field').appendChild(el);
+  setTimeout(() => el.remove(), 260);
 }
-// 残り表示用ローマ字を構築（入力に沿った綴りで残りを返す）
-function kanaDisplay(units, input) {
-  function rec(ui, si) {
-    if (si === input.length) {
-      let rem = '';
-      for (let k = ui; k < units.length; k++) rem += units[k][0];
-      return rem;
-    }
-    if (ui === units.length) return null;
-    for (const v of units[ui]) {
-      if (v && input.startsWith(v, si)) {
-        const r = rec(ui + 1, si + v.length);
-        if (r !== null) return r;
-      }
-    }
-    const part = input.slice(si);
-    for (const v of units[ui]) {
-      if (v.startsWith(part)) {
-        let rem = v.slice(part.length);
-        for (let k = ui + 1; k < units.length; k++) rem += units[k][0];
-        return rem;
-      }
-    }
-    return null;
-  }
-  const rem = rec(0, 0);
-  return rem === null ? '' : rem;
+function bossHitFx(){
+  bossEl.classList.remove('hit'); void bossEl.offsetWidth; bossEl.classList.add('hit');
 }
 
 // ═══════════════════════════════════════════════
-// SPRITES
+// タイピング処理
 // ═══════════════════════════════════════════════
-const S = 3;
-function drawSprite(ctx, pixels, ox, oy, flipX=false) {
-  const rows=pixels.length, cols=pixels[0].length;
-  ctx.save();
-  ctx.translate(ox, oy);
-  if (flipX) { ctx.translate(cols*S, 0); ctx.scale(-1,1); }
-  for (let r=0; r<rows; r++)
-    for (let c=0; c<cols; c++) {
-      const col=pixels[r][c];
-      if (col) { ctx.fillStyle=col; ctx.fillRect(c*S,r*S,S,S); }
-    }
-  ctx.restore();
+function nextWord(){
+  run.word = new TypingWord(wordOrder[run.wordIdx % wordOrder.length]);
+  run.wordIdx++;
+  renderWord();
+}
+function renderWord(){
+  if (!run || !run.word) { $('word-kana').textContent = '－'; $('roma-done').textContent=''; $('roma-left').textContent=''; return; }
+  $('word-kana').textContent = run.word.kana;
+  $('roma-done').textContent = run.word.done;
+  $('roma-left').textContent = run.word.left;
 }
 
-const _ = null, BK = '#111';
-
-// Soldier colors
-const mE='#c8d0d8',mL='#e8f0f8',mD='#6878a0';
-const bA='#2255aa',bAL='#4477cc',bAD='#0e2266';
-const pLu='#55aaff',pLuL='#aaddff';
-const fC='#f2cc88',fCD='#c09040',fEy='#220808';
-const swM='#d0d8e0',swH='#8b5e20';
-const shBl='#1a44aa',shRd='#cc1111',shGd='#d4a820';
-const btC='#181828',btM='#2a2a44';
-
-// Red Lancer colors (replaces archer visually)
-const rlA='#cc2222',rlAL='#ee5555',rlAD='#881111';
-const rlP='#ff8800',rlPL='#ffdd44';
-const rlLn='#8b5e20',rlLnH='#d8e8f0';
-// (kept for any stray refs)
-const ghH='#2a6010',ghL='#44991a',ghD='#163008';
-const ghC='#336611',ghCL='#559933';
-const bwC='#8b5a22',bwL='#bb7733';
-
-// Goblin colors
-const gsK='#66dd44',gsL2='#99ff77',gsD='#339922',gsEy='#ff1100',gsFg='#fffff0';
-const glA='#996622',glL='#cc8833',glD='#5a3010';
-const gKn='#d0d8e0',gKnH='#8b5e20';
-
-// Hobgoblin colors
-const hgS='#44bb33',hgL='#77ee55',hgD='#1e7711',hgEy='#ff2200';
-const hmE='#9098a8',hmL='#c0cad8',hmD='#505868';
-const hnC='#d4a820',hnL='#f0cc40';
-const hCp='#bb1111',hCpL='#dd3333';
-const hSw='#d0d8e0',hSwH='#8b5e20';
-
-// ── Amoeba boss (10×12) ──
-const amG='#55cc33',amL='#88ff55',amD='#2a7711';
-const amEy='#ee8800',amEyL='#ffcc44',amPu='#331100';
-const SPRITE_AMOEBA = [
-  [  _,  amD, amG, amL, amG, amG, amL, amD,  _,  _  ],
-  [ amD, amG, amL, amG, amG, amG, amL, amG, amD, _  ],
-  [ amG, amL, amG, amEy,amG, amG,amEy, amG, amG, amD],
-  [ amG, amG, amG, amEyL,amG,amG,amEyL,amG,amG, amG],
-  [ amD, amG, amG, amG, amPu,amPu,amG, amG, amG, amD],
-  [ amD, amG, amG, amG, amG, amG, amG, amG, amG, amD],
-  [  _,  amD, amG, amG, amG, amG, amG, amG, amD,  _ ],
-  [  _,  amD, amG, amL, amG, amG, amL, amG, amD,  _ ],
-  [  _,   _,  amD, amG, amD, amD, amG, amD,  _,   _ ],
-  [  _,  amD, amG,  _,  amG, amG,  _,  amG, amD,  _ ],
-  [  _,  amG, amD,  _,  amD, amD,  _,  amD, amG,  _ ],
-  [  _,  amD,  _,   _,   _,   _,   _,   _,  amD,  _ ],
-];
-const SPRITE_AMOEBA2 = [
-  [  _,  amD, amG, amL, amG, amG, amL, amD,  _,  _  ],
-  [ amD, amG, amL, amG, amG, amG, amL, amG, amD, _  ],
-  [ amG, amL, amG, amEy,amG, amG,amEy, amG, amG, amD],
-  [ amG, amG, amG, amEyL,amG,amG,amEyL,amG,amG, amG],
-  [ amD, amG, amG, amG, amPu,amPu,amG, amG, amG, amD],
-  [ amD, amG, amG, amG, amG, amG, amG, amG, amG, amD],
-  [  _,  amD, amG, amG, amG, amG, amG, amG, amD,  _ ],
-  [  _,  amD, amG, amL, amG, amG, amL, amG, amD,  _ ],
-  [  _,  amD, amD, amG, amD, amD, amG, amD, amD,  _ ],
-  [  _,  amG,  _,  amD, amG, amG, amD,  _,  amG,  _ ],
-  [  _,  amD,  _,   _,  amD, amD,  _,   _,  amD,  _ ],
-  [  _,   _,   _,   _,   _,   _,   _,   _,   _,   _ ],
-];
-
-// ── Witch boss (10×18) ──
-const whH='#5522aa',whHL='#8844dd',whHD='#220077';
-const whDr='#6633bb',whDrL='#9955ee';
-const whHr='#3311aa';
-const whBw='#ff44aa';
-const whBr='#9b5e22',whBrL='#cc8833',whSt='#cc9944';
-const fEyW='#4422aa';
-const SPRITE_WITCH = [
-  [  _,   _,  whH, whHL,whHL,whHL,whH,  _,   _,   _ ],
-  [  _,  whH, whHL,whH, whHL,whH, whHL,whHD, _,   _ ],
-  [ whHD,whH, whHL,whH, whH, whH, whHL,whH, whHD, _ ],
-  [  _,  whHD,whH, fC,  fC,  fC,  fC,  whH, whHD, _ ],
-  [  _,   _,  BK,  fC,  fEyW,fC, fEyW, fC,  BK,   _ ],
-  [  _,   _,  BK,  fC,  fC,  fCD, fC,  whBw,BK,   _ ],
-  [  _,   _,  BK,  whDr,whDrL,whDr,whDrL,whDr,BK, _ ],
-  [  _,   _,  BK,  whDrL,whDr,whDr,whDr,whDrL,BK, _ ],
-  [  _,   _,  BK,  whDr,whDr,whDr,whDr,whDr,BK,   _ ],
-  [  _,   _,  BK,  whDr,whDr,BK,  BK,  whDr,BK,   _ ],
-  [  _,   _,  whHr,whDr,whDr,BK,  BK,  whDr,whHr, _ ],
-  [  _,  whBr,whSt,whDr,whDr,BK,  BK,  whDr,whSt,whBr],
-  [  _,  whBrL,whBr,whDr,BK, BK,  BK,  BK,  whBr,whBrL],
-  [  _,  whBr,whSt,BK,  BK,  BK,  BK,  BK,  whSt,whBr],
-  [  _,   _,  whBrL,whBr,whBr,whBr,whBr,whBr,whBrL,_],
-  [  _,   _,  BK,  whDr,whDrL,whDr,whDrL,whDr,BK,  _ ],
-  [  _,   _,  BK,  whDr,whDr,whDr,whDr,whDr,BK,   _ ],
-  [  _,   _,   _,  BK,  BK,  BK,  BK,  BK,   _,   _ ],
-];
-const SPRITE_WITCH2 = [
-  [  _,   _,  whH, whHL,whHL,whHL,whH,  _,   _,   _ ],
-  [  _,  whH, whHL,whH, whHL,whH, whHL,whHD, _,   _ ],
-  [ whHD,whH, whHL,whH, whH, whH, whHL,whH, whHD, _ ],
-  [  _,  whHD,whH, fC,  fC,  fC,  fC,  whH, whHD, _ ],
-  [  _,   _,  BK,  fC,  fEyW,fC, fEyW, fC,  BK,   _ ],
-  [  _,   _,  BK,  fC,  fC,  fCD, fC,  whBw,BK,   _ ],
-  [  _,   _,  BK,  whDr,whDrL,whDr,whDrL,whDr,BK, _ ],
-  [  _,   _,  BK,  whDrL,whDr,whDr,whDr,whDrL,BK, _ ],
-  [  _,   _,  BK,  whDr,whDr,whDr,whDr,whDr,BK,   _ ],
-  [  _,   _,  BK,  whDr,whDr,BK,  BK,  whDr,BK,   _ ],
-  [  _,   _,  whHr,whDr,whDr,BK,  BK,  whDr,whHr, _ ],
-  [  _,  whBr,whSt,whDr,whDr,BK,  BK,  whDr,whSt,whBr],
-  [  _,  whBrL,whBr,BK, BK,  BK,  BK,  BK,  whBr,whBrL],
-  [  _,  whBr,BK,  whBr,BK,  BK,  BK,  whBr,BK, whBr],
-  [  _,  whBrL,whBr,whBr,whBr,whBr,whBr,whBr,whBrL,_],
-  [  _,   _,  BK,  whDr,whDrL,whDr,whDrL,whDr,BK,  _ ],
-  [  _,   _,  BK,  whDr,whDr,whDr,whDr,whDr,BK,   _ ],
-  [  _,   _,   _,  BK,  BK,  BK,  BK,  BK,   _,   _ ],
-];
-
-// ── Pomeranian boss (14×10) ──
-const pmF='#eebb66',pmFL='#ffdd99',pmFD='#cc9933',pmN='#221100',pmTn='#ff9999',pmEy='#220808';
-const SPRITE_POME = [
-  [  _,   _,  pmF, pmFL,pmF, pmF, pmFL,pmF, pmF,  _,   _,   _,   _,   _ ],
-  [  _,  pmF, pmFL,pmFD,pmFL,pmFL,pmFD,pmFL,pmFD,pmF,  _,   _,   _,   _ ],
-  [ pmF, pmFL,pmF, pmF, pmEy,pmF, pmF, pmEy,pmF, pmFL,pmF,  _,   _,   _ ],
-  [ pmF, pmF, pmFL,pmF, pmF, pmTn,pmF, pmF, pmFL,pmF, pmF,  _,   _,   _ ],
-  [ pmF, pmF, pmF, pmN, pmF, pmF, pmF, pmN, pmF, pmF, pmF,  _,   _,   _ ],
-  [  _,  pmFD,pmF, pmF, pmFL,pmF, pmFL,pmF, pmF, pmFD, _,  pmFD,pmFL, _ ],
-  [  _,   _,  pmFD,pmF, pmF, pmF, pmF, pmF, pmFD, _,   _,  pmFL,pmFD, _ ],
-  [  _,   _,   _,  pmFD,pmFL,pmF, pmFL,pmFD, _,   _,   _,   _,   _,   _ ],
-  [  _,   _,  pmF, pmFD, _,   _,   _,  pmFD,pmF,  _,   _,   _,   _,   _ ],
-  [  _,  pmFD,pmF,  _,   _,   _,   _,   _,  pmF, pmFD, _,   _,   _,   _ ],
-];
-const SPRITE_POME2 = [
-  [  _,   _,  pmF, pmFL,pmF, pmF, pmFL,pmF, pmF,  _,   _,   _,   _,   _ ],
-  [  _,  pmF, pmFL,pmFD,pmFL,pmFL,pmFD,pmFL,pmFD,pmF,  _,   _,   _,   _ ],
-  [ pmF, pmFL,pmF, pmF, pmEy,pmF, pmF, pmEy,pmF, pmFL,pmF,  _,   _,   _ ],
-  [ pmF, pmF, pmFL,pmF, pmF, pmTn,pmF, pmF, pmFL,pmF, pmF,  _,   _,   _ ],
-  [ pmF, pmF, pmF, pmN, pmF, pmF, pmF, pmN, pmF, pmF, pmF,  _,   _,   _ ],
-  [  _,  pmFD,pmF, pmF, pmFL,pmF, pmFL,pmF, pmF, pmFD, _,   _,  pmFL,pmFD],
-  [  _,   _,  pmFD,pmF, pmF, pmF, pmF, pmF, pmFD, _,   _,  pmFD,pmFL, _ ],
-  [  _,   _,   _,  pmFD,pmFL,pmF, pmFL,pmFD, _,   _,   _,   _,   _,   _ ],
-  [  _,   _,  pmF, pmFD, _,   _,   _,  pmFD,pmF,  _,   _,   _,   _,   _ ],
-  [  _,  pmFD,pmF,  _,   _,   _,   _,   _,  pmF, pmFD, _,   _,   _,   _ ],
-];
-
-// ── Demon Lord boss (12×18) — redesigned: dark purple armor, gold crown, red eyes ──
-const dmB='#1a0828',dmBL='#3a1050',dmBD='#0e0418'; // dark purple body
-const dmGd='#d4a820',dmGdL='#ffcc22',dmGdD='#886600'; // gold
-const dmEy2='#ff2200',dmEyL2='#ff8800'; // red eyes
-const dmCp='#770011',dmCpL='#bb0022'; // crimson cape
-const dmHn='#cc1111',dmHnL='#ff4444'; // red horns
-const dmSk='#2a0a18',dmSkL='#4a1a30'; // dark skin
-const SPRITE_DEMON = [
-//  0      1      2      3      4      5      6      7      8      9     10     11
-  [  _,   dmHn, dmHnL,  _,    dmB,   dmBL,  dmBL,  dmB,   _,   dmHnL, dmHn,   _  ],
-  [ dmHn, dmHnL, dmHn, dmB,   dmBL,  dmB,   dmB,  dmBL,  dmB,  dmHn, dmHnL,   _  ],
-  [  _,    _,   BK,   dmGd,  dmGdL, dmGd,  dmGd,  dmGdL, dmGd,  BK,    _,    dmCp],
-  [  _,    _,   BK,   dmB,   dmBL,  dmBL,  dmBL,  dmBL,  dmB,   BK,    _,   dmCpL],
-  [  _,    _,   BK,   dmSk,  dmSk,  dmSk,  dmSk,  dmSk,  dmSk,  BK,    _,   dmCp ],
-  [  _,    _,   BK,   dmSk, dmEy2, dmSkL,  dmSkL, dmEy2, dmSk,  BK,    _,   dmCpL],
-  [  _,    _,   BK,   dmSkL, dmSk, dmGdD,  dmGdD, dmSk, dmSkL,  BK,  dmCpL, dmCp ],
-  [  _,    _,   BK,   dmSk, dmSkL, dmSk,   dmSk, dmSkL, dmSk,   BK,  dmCp,   _   ],
-  [ dmGd, dmGdL, BK,  dmB,   dmBL,  dmGd,  dmGd, dmBL,  dmB,   BK,  dmCpL,  _   ],
-  [dmGdL, dmGd,  BK,  dmBL,  dmGd,  dmB,   dmB,  dmGd,  dmBL,  BK,  dmCp,   _   ],
-  [  _,   dmGd,  BK,  dmB,   dmBL,  BK,    BK,   dmBL,  dmB,   BK,  dmCpL,  _   ],
-  [  _,    _,   BK,   dmB,   dmBL,  BK,    BK,   dmBL,  dmB,   BK,    _,    _   ],
-  [  _,    _,   BK,   dmSk,  dmSkL, BK,    BK,   dmSkL, dmSk,  BK,    _,    _   ],
-  [  _,    _,   BK,   dmSk,  dmSkL, BK,    BK,   dmSkL, dmSk,  BK,    _,    _   ],
-  [  _,    _,   BK,   dmB,   dmBL,  BK,    BK,   dmBL,  dmB,   BK,    _,    _   ],
-  [  _,    _,   BK,   dmBD,  dmB,   BK,    BK,   dmB,   dmBD,  BK,    _,    _   ],
-  [  _,    _,   BK,   dmBD,  dmBD,  dmBD,  dmBD, dmBD,  dmBD,  BK,    _,    _   ],
-  [  _,    _,    _,   BK,    BK,    BK,    BK,   BK,    BK,    _,    _,    _   ],
-];
-const SPRITE_DEMON2 = [
-  [  _,   dmHn, dmHnL,  _,    dmB,   dmBL,  dmBL,  dmB,   _,   dmHnL, dmHn,   _  ],
-  [ dmHn, dmHnL, dmHn, dmB,   dmBL,  dmB,   dmB,  dmBL,  dmB,  dmHn, dmHnL,   _  ],
-  [  _,    _,   BK,   dmGd,  dmGdL, dmGd,  dmGd,  dmGdL, dmGd,  BK,    _,    dmCp],
-  [  _,    _,   BK,   dmB,   dmBL,  dmBL,  dmBL,  dmBL,  dmB,   BK,    _,   dmCpL],
-  [  _,    _,   BK,   dmSk,  dmSk,  dmSk,  dmSk,  dmSk,  dmSk,  BK,    _,   dmCp ],
-  [  _,    _,   BK,   dmSk, dmEy2, dmSkL,  dmSkL, dmEy2, dmSk,  BK,    _,   dmCpL],
-  [  _,    _,   BK,   dmSkL, dmSk, dmGdD,  dmGdD, dmSk, dmSkL,  BK,  dmCpL, dmCp ],
-  [  _,    _,   BK,   dmSk, dmSkL, dmSk,   dmSk, dmSkL, dmSk,   BK,  dmCp,   _   ],
-  [ dmGd, dmGdL, BK,  dmB,   dmBL,  dmGd,  dmGd, dmBL,  dmB,   BK,  dmCpL,  _   ],
-  [dmGdL, dmGd,  BK,  dmBL,  dmGd,  dmB,   dmB,  dmGd,  dmBL,  BK,  dmCp,   _   ],
-  [  _,   dmGd,  BK,  dmB,   dmBL,  BK,    BK,   dmBL,  dmB,   BK,  dmCpL,  _   ],
-  [  _,    _,   BK,   dmB,   dmBL,  BK,    BK,   dmBL,  dmB,   BK,    _,    _   ],
-  [  _,    _,   BK,   dmBL,  dmSk,  BK,    BK,   dmSk,  dmBL,  BK,    _,    _   ],
-  [  _,    _,   BK,   dmSk,  dmBL,  BK,    BK,   dmBL,  dmSk,  BK,    _,    _   ],
-  [  _,    _,    _,   BK,    dmB,  dmBL,   dmBL,  dmB,   BK,    _,    _,    _   ],
-  [  _,    _,    _,   BK,    dmBD,  dmB,   dmB,   dmBD,  BK,    _,    _,    _   ],
-  [  _,    _,   BK,   dmBD,  dmBD,  dmBD,  dmBD, dmBD,  dmBD,  BK,    _,    _   ],
-  [  _,    _,    _,   BK,    BK,    BK,    BK,   BK,    BK,    _,    _,    _   ],
-];
-
-// ── God boss (12×20) — radiant deity with halo and wing aura ──
-const gdW='#ffffff',gdWD='#e0e8ff'; // pure white robe
-const gdCr='#ffd700',gdCrL='#ffee88',gdCrD='#aa8800'; // gold crown/halo
-const gdEy='#111133',gdEyL='#333366'; // half-closed creepy eyes
-const gdAu='#ffe066',gdAuL='#fff4aa'; // golden aura accents
-const gdFc='#f5eed0',gdFcD='#d4b870'; // warm face
-const gdWg='#aaccff',gdWgL='#ddeeff'; // blue-white wing glow
-const gdSm='#cc0000',gdTe='#ffffff'; // creepy smile: red gums, white teeth
-const SPRITE_GOD = [
-//  0      1      2      3      4      5      6      7      8      9     10     11
-  [  _,  gdCr, gdCrL, gdCr, gdCrL, gdCr, gdCrL, gdCr, gdCrL, gdCr,   _,    _  ],
-  [gdCr, gdAu, gdCrL, gdAu, gdCrD, gdCr, gdCr, gdCrD, gdAu, gdCrL, gdAu,   _  ],
-  [  _,  gdCrD,gdCr,  gdW,  gdW,   gdW,  gdW,  gdW,  gdW,  gdCr, gdCrD,   _  ],
-  [  _,   _,  BK,  gdWD,  gdW,  gdW,  gdW,  gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,  BK,  gdFc, gdEy, gdFcD,gdFcD, gdEy, gdFc, BK,    _,  gdAu ], // half-closed eyes
-  [  _,   _,  BK,  gdFc,gdEyL, gdFc, gdFc,gdEyL, gdFc, BK,    _,  gdAuL], // lower eyelids
-  [  _,   _,  BK,  gdSm, gdTe, gdTe, gdTe, gdTe, gdSm, BK,    _,  gdAu ], // wide teeth grin
-  [gdWg, gdWgL,BK, gdSm, gdSm, gdSm, gdSm, gdSm, gdSm, BK, gdWgL,gdWg ], // grin gums lower
-  [gdWgL,gdWg,BK,  gdW,  gdWD, gdAu, gdAu, gdWD, gdW,  BK, gdWg, gdWgL],
-  [gdWg, gdWgL,BK, gdW,  gdAu, gdWD, gdWD, gdAu, gdW,  BK, gdWgL,gdWg ],
-  [  _,  gdWg, BK,  gdW,  gdW,  BK,   BK,  gdW,  gdW,  BK, gdWg,   _  ],
-  [  _,   _,  BK,  gdW,  gdW,  BK,   BK,  gdW,  gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdWD, gdW,  BK,   BK,  gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,  BK,  gdW,  gdWD, BK,   BK,  gdWD, gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdW,  gdWD, BK,   BK,  gdWD, gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdWD, gdW,  BK,   BK,  gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,  BK,  gdW,  gdWD, gdW,  gdW, gdWD, gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdWD, gdW,  gdW,  gdW, gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,   _,  BK,  gdCr, gdCrL,gdCrL,gdCr, BK,   _,    _,    _  ],
-  [  _,   _,   _,   _,   BK,   BK,   BK,  BK,   _,    _,    _,    _  ],
-];
-const SPRITE_GOD2 = [
-  [  _,  gdCr, gdCrL, gdCr, gdCrL, gdCr, gdCrL, gdCr, gdCrL, gdCr,   _,    _  ],
-  [gdCr, gdAu, gdCrL, gdAu, gdCrD, gdCr, gdCr, gdCrD, gdAu, gdCrL, gdAu,   _  ],
-  [  _,  gdCrD,gdCr,  gdW,  gdW,   gdW,  gdW,  gdW,  gdW,  gdCr, gdCrD,   _  ],
-  [  _,   _,  BK,  gdWD,  gdW,  gdW,  gdW,  gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,  BK,  gdFc, gdEy, gdFcD,gdFcD, gdEy, gdFc, BK,    _,  gdAu ],
-  [  _,   _,  BK,  gdFc,gdEyL, gdFc, gdFc,gdEyL, gdFc, BK,    _,  gdAuL],
-  [  _,   _,  BK,  gdSm, gdTe, gdTe, gdTe, gdTe, gdSm, BK,    _,  gdAu ],
-  [gdWg, gdWgL,BK, gdSm, gdSm, gdSm, gdSm, gdSm, gdSm, BK, gdWgL,gdWg ],
-  [gdWgL,gdWg,BK,  gdW,  gdWD, gdAu, gdAu, gdWD, gdW,  BK, gdWg, gdWgL],
-  [gdWg, gdWgL,BK, gdW,  gdAu, gdWD, gdWD, gdAu, gdW,  BK, gdWgL,gdWg ],
-  [  _,  gdWg, BK,  gdW,  gdW,  BK,   BK,  gdW,  gdW,  BK, gdWg,   _  ],
-  [  _,   _,  BK,  BK,   gdW,  gdW,  gdW,  gdW,  BK,   BK,   _,    _  ],
-  [  _,   _,   _,  BK,  gdWD, gdW,  gdW,  gdWD,  BK,   _,    _,    _  ],
-  [  _,   _,   _,  BK,  gdW,  gdWD, gdWD, gdW,   BK,   _,    _,    _  ],
-  [  _,   _,  BK,  gdW,  gdWD, BK,   BK,  gdWD, gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdWD, gdW,  BK,   BK,  gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,  BK,  gdW,  gdWD, gdW,  gdW, gdWD, gdW,  BK,    _,    _  ],
-  [  _,   _,  BK,  gdWD, gdW,  gdW,  gdW, gdW,  gdWD, BK,    _,    _  ],
-  [  _,   _,   _,  BK,  gdCr, gdCrL,gdCrL,gdCr, BK,   _,    _,    _  ],
-  [  _,   _,   _,   _,   BK,   BK,   BK,  BK,   _,    _,    _,    _  ],
-];
-
-// ── Hero (勇者) sprite 12×18 — golden armor, blue cape, holy sword ──
-const hrG='#ffd700', hrGL='#fff0a0', hrGD='#b8860b'; // gold armor
-const hrB='#1144cc', hrBL='#4488ff', hrBD='#0a2a88'; // blue cape
-const hrSw='#e0e8f0', hrSwH='#ffffff'; // holy sword silver
-const hrFc='#f5d5a0', hrFcD='#c8995a'; // face
-const hrEy='#2244aa'; // eyes
-const SPRITE_HERO = [
-//  0      1      2      3      4      5      6      7      8      9     10     11
-  [  _,    _,    _,    _,   hrGL,  hrG,   hrG,  hrGL,   _,    _,    hrSwH,  _  ],
-  [  _,    _,    _,   hrG,  hrGL,  hrG,   hrG,  hrGL,  hrG,   _,    hrSw,   _  ],
-  [  _,    _,   BK,   hrG,  hrGL,  hrG,   hrG,  hrGL,  hrG,   BK,   hrSw,   _  ],
-  [  _,    _,   BK,   hrGL,  hrG,  hrGL,  hrGL,  hrG,  hrGL,  BK,   hrSw,   _  ],
-  [  _,    _,   BK,   hrG,  hrFc, hrFc,  hrFc,  hrFc,  hrG,   BK,    _,     _  ],
-  [  _,   BK,   hrG,  BK,  hrFc,  hrEy,  hrFc,  hrEy, hrFcD,  BK,   _,     _  ],
-  [ BK,   hrB,  hrG,  BK,  hrFc,  hrFc, hrFcD, hrFc,  hrFcD,  BK,  BK,    hrSw],
-  [ BK,   hrBL, hrB,  BK,   hrGD,  hrG,   hrG,  hrGD,  BK,    _,    _,    hrSwH],
-  [ BK,   hrB,  hrBL, BK,   hrGL,  hrG,   hrG,  hrGL,  BK,    _,    _,     _  ],
-  [ BK,   hrBL, hrB,  BK,   hrG,  hrGD,  hrGD,  hrG,   BK,    _,    _,     _  ],
-  [  _,   BK,   hrB,  BK,   hrG,   hrG,   hrG,  hrG,   BK,    _,    _,     _  ],
-  [  _,    _,   BK,   hrG,  hrG,   BK,    BK,   hrG,   hrG,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrGL,  hrG,  BK,    BK,   hrG,  hrGL,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrG,  hrGD,  BK,    BK,  hrGD,   hrG,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrG,  hrGD,  BK,    BK,  hrGD,   hrG,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrGD,  hrG,  BK,    BK,   hrG,  hrGD,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrGD, hrGD, hrGD,  hrGD, hrGD,  hrGD,   BK,   _,     _  ],
-  [  _,    _,    _,   BK,   BK,   BK,    BK,   BK,    BK,     _,    _,     _  ],
-];
-const SPRITE_HERO2 = [
-  [  _,    _,    _,    _,   hrGL,  hrG,   hrG,  hrGL,   _,    _,    hrSwH,  _  ],
-  [  _,    _,    _,   hrG,  hrGL,  hrG,   hrG,  hrGL,  hrG,   _,    hrSw,   _  ],
-  [  _,    _,   BK,   hrG,  hrGL,  hrG,   hrG,  hrGL,  hrG,   BK,   hrSw,   _  ],
-  [  _,    _,   BK,   hrGL,  hrG,  hrGL,  hrGL,  hrG,  hrGL,  BK,   hrSw,   _  ],
-  [  _,    _,   BK,   hrG,  hrFc, hrFc,  hrFc,  hrFc,  hrG,   BK,    _,     _  ],
-  [  _,   BK,   hrG,  BK,  hrFc,  hrEy,  hrFc,  hrEy, hrFcD,  BK,   _,     _  ],
-  [ BK,   hrB,  hrG,  BK,  hrFc,  hrFc, hrFcD, hrFc,  hrFcD,  BK,  BK,    hrSw],
-  [ BK,   hrBL, hrB,  BK,   hrGD,  hrG,   hrG,  hrGD,  BK,    _,    _,    hrSwH],
-  [ BK,   hrB,  hrBL, BK,   hrGL,  hrG,   hrG,  hrGL,  BK,    _,    _,     _  ],
-  [ BK,   hrBL, hrB,  BK,   hrG,  hrGD,  hrGD,  hrG,   BK,    _,    _,     _  ],
-  [  _,   BK,   hrB,  BK,   hrG,   hrG,   hrG,  hrG,   BK,    _,    _,     _  ],
-  [  _,    _,   BK,   BK,   hrG,   hrG,   hrG,  hrG,   BK,   BK,   _,     _  ],
-  [  _,    _,    _,   BK,   hrGL,  hrG,   hrG,  hrGL,  BK,    _,    _,     _  ],
-  [  _,    _,    _,   BK,   hrG,  hrGD,  hrGD,  hrG,   BK,    _,    _,     _  ],
-  [  _,    _,   BK,   hrG,  hrGD,  BK,    BK,  hrGD,   hrG,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrGD,  hrG,  BK,    BK,   hrG,  hrGD,   BK,   _,     _  ],
-  [  _,    _,   BK,   hrGD, hrGD, hrGD,  hrGD, hrGD,  hrGD,   BK,   _,     _  ],
-  [  _,    _,    _,   BK,   BK,   BK,    BK,   BK,    BK,     _,    _,     _  ],
-];
-
-// Original ally sprites
-const SPRITE_SOLDIER = [
-  [  _,    _,    _,    _,   pLu, pLuL,  pLu,  pLu,   _,    _,    _,    _  ],
-  [  _,    _,    _,   pLu, pLuL,  pLu, pLuL,  pLu,  pLu,   _,    _,    _  ],
-  [  _,    _,   BK,   mE,   mE,   mE,   mE,   mE,   mE,   BK,    _,    _  ],
-  [  _,    _,   BK,   mL,   mD,   mE,   mE,   mD,   mL,   BK,    _,   swM ],
-  [  _,    _,   BK,   mE,   fC,   fC,   fC,   fC,   mE,   BK,    _,   swM ],
-  [  _,   BK,  shGd,  BK,   fC,  fEy,   fC,  fEy,   mD,   BK,    _,   swM ],
-  [ BK,  shRd, shBl,  BK,   fC,   fC,  fCD,   fC,   mD,   BK,   BK,  swH  ],
-  [ BK,  shBl, shRd,  BK,   mD,   mD,   mD,   mD,   BK,   _,    _,   swH  ],
-  [ BK,  shBl, shBl,  BK,  bAL,   bA,   bA,  bAL,   BK,   _,    _,    _   ],
-  [ BK,  shRd, shBl,  BK,   bA,  bAD,  bAD,   bA,   BK,   _,    _,    _   ],
-  [  _,   BK,  shBl,  BK,   bA,   bA,   bA,   bA,   BK,   _,    _,    _   ],
-  [  _,    _,   BK,   bA,   bA,   BK,   BK,   bA,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,  bAL,   bA,   BK,   BK,   bA,  bAL,   BK,   _,    _   ],
-  [  _,    _,   BK,   bA,  bAD,   BK,   BK,  bAD,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,   bA,  bAD,   BK,   BK,  bAD,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,  bAD,   bA,   BK,   BK,   bA,  bAD,   BK,   _,    _   ],
-  [  _,    _,   BK,   btC,  btC,  btC,  btC,  btC,  btC,  BK,   _,    _   ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,   BK,   BK,   _,    _,    _   ],
-];
-const SPRITE_SOLDIER2 = [
-  // rows 0-10: identical (upper body doesn't change)
-  [  _,    _,    _,    _,   pLu, pLuL,  pLu,  pLu,   _,    _,    _,    _  ],
-  [  _,    _,    _,   pLu, pLuL,  pLu, pLuL,  pLu,  pLu,   _,    _,    _  ],
-  [  _,    _,   BK,   mE,   mE,   mE,   mE,   mE,   mE,   BK,    _,    _  ],
-  [  _,    _,   BK,   mL,   mD,   mE,   mE,   mD,   mL,   BK,    _,   swM ],
-  [  _,    _,   BK,   mE,   fC,   fC,   fC,   fC,   mE,   BK,    _,   swM ],
-  [  _,   BK,  shGd,  BK,   fC,  fEy,   fC,  fEy,   mD,   BK,    _,   swM ],
-  [ BK,  shRd, shBl,  BK,   fC,   fC,  fCD,   fC,   mD,   BK,   BK,  swH  ],
-  [ BK,  shBl, shRd,  BK,   mD,   mD,   mD,   mD,   BK,   _,    _,   swH  ],
-  [ BK,  shBl, shBl,  BK,  bAL,   bA,   bA,  bAL,   BK,   _,    _,    _   ],
-  [ BK,  shRd, shBl,  BK,   bA,  bAD,  bAD,   bA,   BK,   _,    _,    _   ],
-  [  _,   BK,  shBl,  BK,   bA,   bA,   bA,   bA,   BK,   _,    _,    _   ],
-  // rows 11-17: subtle walk — legs stay separated, shading L/R swapped
-  [  _,    _,   BK,   bA,   bA,   BK,   BK,   bA,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,   bA,  bAL,   BK,   BK,  bAL,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,  bAD,   bA,   BK,   BK,   bA,  bAD,   BK,   _,    _   ],
-  [  _,    _,   BK,  bAD,   bA,   BK,   BK,   bA,  bAD,   BK,   _,    _   ],
-  [  _,    _,   BK,   bA,  bAD,   BK,   BK,  bAD,   bA,   BK,   _,    _   ],
-  [  _,    _,   BK,   btC,  btC,  btC,  btC,  btC,  btC,  BK,   _,    _   ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,   BK,   BK,   _,    _,    _   ],
-];
-// ── Red Lancer (ranged ally, replaces archer) 12×18 ──
-const SPRITE_ARCHER = [
-  [  _,    _,    _,    _,   rlP, rlPL,  rlP,  rlP,   _,    _,    _,    _  ],
-  [  _,    _,    _,   rlP, rlPL,  rlP, rlPL,  rlP,  rlP,   _,    _,    _  ],
-  [  _,    _,   BK,   mE,   mE,   mE,   mE,   mE,   mE,   BK,    _,    _  ],
-  [  _,    _,   BK,   mL,   mD,   mE,   mE,   mD,   mL,   BK,    _,  rlLnH],
-  [  _,    _,   BK,   mE,   fC,   fC,   fC,   fC,   mE,   BK,    _,  rlLn ],
-  [  _,   BK,  rlA,   BK,   fC,  fEy,   fC,  fEy,   mD,   BK,    _,  rlLn ],
-  [ BK,  rlAL, rlA,   BK,   fC,   fC,  fCD,   fC,   mD,   BK,   BK,  rlLn ],
-  [ BK,  rlA,  rlAL,  BK,   mD,   mD,   mD,   mD,   BK,   _,    _,  rlLn  ],
-  [ BK,  rlA,  rlA,   BK,  rlAL,  rlA,  rlA, rlAL,  BK,   _,    _,    _   ],
-  [ BK,  rlAL, rlA,   BK,   rlA, rlAD, rlAD,  rlA,  BK,   _,    _,    _   ],
-  [  _,   BK,  rlA,   BK,   rlA,  rlA,  rlA,  rlA,  BK,   _,    _,    _   ],
-  [  _,    _,   BK,   rlA,  rlA,  BK,   BK,   rlA,  rlA,  BK,   _,    _   ],
-  [  _,    _,   BK,  rlAL,  rlA,  BK,   BK,   rlA, rlAL,  BK,   _,    _   ],
-  [  _,    _,   BK,   rlA, rlAD,  BK,   BK,  rlAD,  rlA,  BK,   _,    _   ],
-  [  _,    _,   BK,   rlA, rlAD,  BK,   BK,  rlAD,  rlA,  BK,   _,    _   ],
-  [  _,    _,   BK,  rlAD,  rlA,  BK,   BK,   rlA, rlAD,  BK,   _,    _   ],
-  [  _,    _,   BK,   btC,  btC,  btC,  btC,  btC,  btC,  BK,   _,    _   ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,   BK,   BK,   _,    _,    _   ],
-];
-const SPRITE_ARCHER2 = [
-  [  _,    _,    _,    _,   rlP, rlPL,  rlP,  rlP,   _,    _,    _,    _  ],
-  [  _,    _,    _,   rlP, rlPL,  rlP, rlPL,  rlP,  rlP,   _,    _,    _  ],
-  [  _,    _,   BK,   mE,   mE,   mE,   mE,   mE,   mE,   BK,    _,    _  ],
-  [  _,    _,   BK,   mL,   mD,   mE,   mE,   mD,   mL,   BK,    _,  rlLnH],
-  [  _,    _,   BK,   mE,   fC,   fC,   fC,   fC,   mE,   BK,    _,  rlLn ],
-  [  _,   BK,  rlA,   BK,   fC,  fEy,   fC,  fEy,   mD,   BK,    _,  rlLn ],
-  [ BK,  rlAL, rlA,   BK,   fC,   fC,  fCD,   fC,   mD,   BK,   BK,  rlLn ],
-  [ BK,  rlA,  rlAL,  BK,   mD,   mD,   mD,   mD,   BK,   _,    _,  rlLn  ],
-  [ BK,  rlA,  rlA,   BK,  rlAL,  rlA,  rlA, rlAL,  BK,   _,    _,    _   ],
-  [ BK,  rlAL, rlA,   BK,   rlA, rlAD, rlAD,  rlA,  BK,   _,    _,    _   ],
-  [  _,   BK,  rlA,   BK,   rlA,  rlA,  rlA,  rlA,  BK,   _,    _,    _   ],
-  [  _,    _,   BK,   BK,   rlA,  rlA,  rlA,  rlA,  BK,   BK,   _,    _   ],
-  [  _,    _,    _,   BK,  rlAL,  rlA,  rlA, rlAL,  BK,   _,    _,    _   ],
-  [  _,    _,    _,   BK,   rlA, rlAD, rlAD,  rlA,  BK,   _,    _,    _   ],
-  [  _,    _,   BK,   rlA, rlAD,  BK,   BK,  rlAD,  rlA,  BK,   _,    _   ],
-  [  _,    _,   BK,  rlAD,  rlA,  BK,   BK,   rlA, rlAD,  BK,   _,    _   ],
-  [  _,    _,   BK,   btC,  btC,  btC,  btC,  btC,  btC,  BK,   _,    _   ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,   BK,   BK,   _,    _,    _   ],
-];
-const SPRITE_GOBLIN = [
-  [  _,   BK,   gsD,  gsK,  gsK,  gsK,  gsD,  BK,    _,    _  ],
-  [ BK,   gsD,  gsK,  gsK,  gsK,  gsK,  gsK,  gsD,  BK,    _  ],
-  [ BK,   gsD,  gsK,  gsEy, gsK,  gsK,  gsEy, gsD,  BK,    _  ],
-  [ BK,   gsD,  gsK,  gsK,  gsFg, gsK,  gsK,  gsD,  BK,    _  ],
-  [  _,   BK,   gsD,  gsD,  gsD,  gsD,  gsD,  BK,   BK,   gKn ],
-  [  _,   BK,   glL,  glA,  glA,  glA,  glL,  BK,    _,   gKn ],
-  [  _,   BK,   glL,  glD,  glA,  glD,  glL,  BK,    _,   gKnH],
-  [  _,   BK,   glA,  glA,  glA,  glA,  glA,  BK,   BK,    _  ],
-  [  _,   BK,   gsD,  gsK,  BK,   BK,   gsK,  gsD,  BK,    _  ],
-  [  _,   BK,   gsD,  gsK,  BK,   BK,   gsK,  gsD,  BK,    _  ],
-  [  _,   BK,   gsD,  gsK,  BK,   BK,   gsK,  gsD,  BK,    _  ],
-  [  _,    _,   BK,   gsD,  BK,   BK,   gsD,  BK,    _,    _  ],
-  [  _,    _,   BK,   glD,  glD,  glD,  glD,  BK,    _,    _  ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,    _,    _,    _  ],
-];
-const SPRITE_GOBLIN2 = [
-  // rows 0-7: identical (head/body)
-  [  _,   BK,   gsD,  gsK,  gsK,  gsK,  gsD,  BK,    _,    _  ],
-  [ BK,   gsD,  gsK,  gsK,  gsK,  gsK,  gsK,  gsD,  BK,    _  ],
-  [ BK,   gsD,  gsK,  gsEy, gsK,  gsK,  gsEy, gsD,  BK,    _  ],
-  [ BK,   gsD,  gsK,  gsK,  gsFg, gsK,  gsK,  gsD,  BK,    _  ],
-  [  _,   BK,   gsD,  gsD,  gsD,  gsD,  gsD,  BK,   BK,   gKn ],
-  [  _,   BK,   glL,  glA,  glA,  glA,  glL,  BK,    _,   gKn ],
-  [  _,   BK,   glL,  glD,  glA,  glD,  glL,  BK,    _,   gKnH],
-  [  _,   BK,   glA,  glA,  glA,  glA,  glA,  BK,   BK,    _  ],
-  // rows 8-13: legs stay separated (fix merging), shading swapped
-  [  _,   BK,   gsD,  gsK,  BK,   BK,   gsK,  gsD,  BK,    _  ],
-  [  _,   BK,   gsK,  gsD,  BK,   BK,   gsD,  gsK,  BK,    _  ],
-  [  _,   BK,   gsK,  gsD,  BK,   BK,   gsD,  gsK,  BK,    _  ],
-  [  _,    _,   BK,   gsK,  BK,   BK,   gsK,  BK,    _,    _  ],
-  [  _,    _,   BK,   glD,  glD,  glD,  glD,  BK,    _,    _  ],
-  [  _,    _,    _,   BK,   BK,   BK,   BK,    _,    _,    _  ],
-];
-const SPRITE_HOBGOBLIN = [
-  [ hSw,   _,    _,   hnC,  hnL,   _,    _,   hnL,  hnC,   _,   hCp,  hCp,  _  ],
-  [ hSw,   _,   BK,   hnC,  hnL,  hmD,   _,   hmD,  hnL,  hnC,  hCpL, hCp,  _  ],
-  [ hSwH,  BK,  hmE,  hnC,  hmL,  hmE,  hmE,  hmL,  hnC,  hmE,  BK,  hCp, hCpL ],
-  [  _,   BK,  hmD,  hmE,  hmL,  hmE,  hmE,  hmL,  hmE,  hmD,  BK,  hCp, hCp  ],
-  [  _,   BK,  hmD,  hmD,  hmE,  hmE,  hmE,  hmE,  hmD,  hmD,  BK,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgS,  hgS,  hgS,  hgS,  hgD,  BK,   _,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgEy, hgS,  hgS,  hgEy, hgD,  BK,   _,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgS,  hgS,  hgS,  hgS,  hgD,  BK,   _,  hCp, hCpL ],
-  [  _,   BK,  hmD,  hmE,  hmL,  hmE,  hmE,  hmL,  hmE,  BK,   _,  hCp, hCp  ],
-  [  _,   BK,  hmE,  hmL,  hmD,  hmE,  hmD,  hmL,  hmE,  BK,   _,  hCp, hCp  ],
-  [  _,   BK,  hmD,  hmE,  hmE,  BK,   BK,  hmE,  hmE,  BK,   _,  hCp,  _   ],
-  [  _,    _,  BK,   hmE,  hmE,  BK,   BK,  hmE,  hmE,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hgS,  hgD,  BK,   BK,  hgD,  hgS,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hgS,  hgD,  BK,   BK,  hgD,  hgS,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hgS,  hgD,  BK,   BK,  hgD,  hgS,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hgD,  hgS,  BK,   BK,  hgS,  hgD,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hmD,  hmD,  hmD,  hmD,  hmD,  hmD,  BK,   _,   _,   _   ],
-  [  _,    _,   _,   BK,   BK,   BK,   BK,   BK,   BK,   _,   _,   _,   _   ],
-];
-const SPRITE_HOBGOBLIN2 = [
-  [ hSw,   _,    _,   hnC,  hnL,   _,    _,   hnL,  hnC,   _,   hCp,  hCp,  _  ],
-  [ hSw,   _,   BK,   hnC,  hnL,  hmD,   _,   hmD,  hnL,  hnC,  hCpL, hCp,  _  ],
-  [ hSwH,  BK,  hmE,  hnC,  hmL,  hmE,  hmE,  hmL,  hnC,  hmE,  BK,  hCp, hCpL ],
-  [  _,   BK,  hmD,  hmE,  hmL,  hmE,  hmE,  hmL,  hmE,  hmD,  BK,  hCp, hCp  ],
-  [  _,   BK,  hmD,  hmD,  hmE,  hmE,  hmE,  hmE,  hmD,  hmD,  BK,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgS,  hgS,  hgS,  hgS,  hgD,  BK,   _,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgEy, hgS,  hgS,  hgEy, hgD,  BK,   _,   _,  hCp  ],
-  [  _,   BK,  hgD,  hgS,  hgS,  hgS,  hgS,  hgS,  hgD,  BK,   _,  hCp, hCpL ],
-  [  _,   BK,  hmD,  hmE,  hmL,  hmE,  hmE,  hmL,  hmE,  BK,   _,  hCp, hCp  ],
-  [  _,   BK,  hmE,  hmL,  hmD,  hmE,  hmD,  hmL,  hmE,  BK,   _,  hCp, hCp  ],
-  [  _,   BK,  hmD,  hmE,  hmE,  BK,   BK,  hmE,  hmE,  BK,   _,  hCp,  _   ],
-  [  _,    _,  BK,   BK,   hmE,  hmE,  hmE,  hmE,  BK,   BK,   _,   _,   _   ],
-  [  _,    _,   _,  BK,   hgS,  hgD,  hgD,  hgS,  BK,   _,   _,   _,   _   ],
-  [  _,    _,   _,  BK,   hgS,  hgD,  hgD,  hgS,  BK,   _,   _,   _,   _   ],
-  [  _,    _,  BK,   hgS,  hgD,  BK,   BK,  hgD,  hgS,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hgD,  hgS,  BK,   BK,  hgS,  hgD,  BK,   _,   _,   _   ],
-  [  _,    _,  BK,   hmD,  hmD,  hmD,  hmD,  hmD,  hmD,  BK,   _,   _,   _   ],
-  [  _,    _,   _,   BK,   BK,   BK,   BK,   BK,   BK,   _,   _,   _,   _   ],
-];
-
-// ═══════════════════════════════════════════════
-// IMAGE SPRITES
-// ═══════════════════════════════════════════════
-const IMAGE_DEFS = {
-  soldier:   {frames:['images/soldier_1.png','images/soldier_3.png'], drawH:80,  yOff:17},
-  goblin:    {frames:['images/goblin_1.png','images/goblin_2.png'],   drawH:116, yOff:39},
-  hobgoblin: {frames:['images/goblin_1.png','images/goblin_2.png'],   drawH:116, yOff:39},
-  hero:      {frames:['images/hero_1.png','images/hero_2.png'],       drawH:78,  yOff:7, hit:'images/hero_hit.png'},
-  cat:       {frames:['images/cat_boss.png'],                         drawH:76, yOff:13},
-  bat:       {frames:['images/bat_boss.png'],                         drawH:76, yOff:13},
-  allycat:   {frames:['images/cat_boss.png'],                         drawH:56, yOff:10},
-  allybat:   {frames:['images/bat_boss.png'],                         drawH:56, yOff:10},
-  demonlord: {frames:['images/demonlord_1.png'],                      drawH:160, yOff:25},
-  allydemon: {frames:['images/demonlord_1.png'],                      drawH:160, yOff:25},
-  god:       {frames:['images/god_1.png'],                            drawH:180, yOff:30},
-};
-const loadedImages = {};
-let imagesReady = false;
-function preloadImages(done) {
-  const paths = [...new Set(Object.values(IMAGE_DEFS).flatMap(d => [...d.frames, ...(d.hit ? [d.hit] : [])]))];
-  let count = 0;
-  const total = paths.length;
-  paths.forEach(p => {
-    const img = new Image();
-    img.onload = img.onerror = () => { if (++count >= total) { imagesReady = true; if (done) done(); } };
-    img.src = p;
-    loadedImages[p] = img;
-  });
-  if (!total) { imagesReady = true; if (done) done(); }
+function applyDamage(amount, big){
+  run.damage += amount;
+  if (!run.killed) {
+    run.bossHp -= amount;
+    if (run.bossHp <= 0) { run.bossHp = 0; onKill(); }
+  }
+  updateOrb();
+  popDamage(amount, big);
 }
-function drawImageUnit(u, img, drawH, yOff) {
-  if (!img || !img.complete || !img.naturalWidth) return false;
-  const aspect = img.naturalWidth / img.naturalHeight;
-  const drawW = Math.round(drawH * aspect);
-  const off = yOff || 0;
-  let groundY = u.risingY !== undefined ? u.risingY : (u.landingY !== undefined ? u.landingY : GROUND);
-  // 神：ふわふわ浮遊（上下バウンド）で生きている感じを出す
-  if (u.type === 'god' && u.risingY === undefined) {
-    groundY -= 10 + 8 * Math.sin(Date.now() / 600);
+
+function onChar(ch){
+  if (state !== 'playing' || !run.word) return;
+  const r = run.word.press(ch);
+  if (r.status === 'reject') {
+    run.combo = 0; run.missChars++;
+    updateCombo();
+    $('typebar').classList.remove('flash'); void $('typebar').offsetWidth; $('typebar').classList.add('flash');
+    blip(110, 0.08, 0.1, 'sawtooth');
+    return;
   }
-  // 魔王：空中に浮遊（飛行ビジュアル）。神より低めで重々しく揺れる
-  if ((u.type === 'demonlord' || u.type === 'allydemon') && u.risingY === undefined) {
-    groundY -= 14 + 7 * Math.sin(Date.now() / 560);
-  }
-  // 猫・蝙蝠ボス：空を飛ぶ浮遊モンスター（ふわふわ大きく揺れる）
-  if ((u.type === 'cat' || u.type === 'bat' || u.type === 'allycat' || u.type === 'allybat') && u.risingY === undefined) {
-    groundY -= 28 + 12 * Math.sin(Date.now() / 480);
-  }
-  const cx = Math.round(u.x - drawW/2);
-  const cy = groundY - drawH + off;
-  ctx.save();
-  if (u.risingY !== undefined) { ctx.beginPath(); ctx.rect(0,0,CW,GROUND); ctx.clip(); }
-  if (u.side === 'enemy') {
-    ctx.translate(u.x, groundY + off); ctx.scale(-1,1);
-    ctx.drawImage(img, -drawW/2, -drawH, drawW, drawH);
+  // 正解1打
+  run.typedChars++;
+  run.combo++; run.maxCombo = Math.max(run.maxCombo, run.combo);
+  const dmg = Math.round(DMG_BASE * comboMult(run.combo));
+  applyDamage(dmg, false);
+  bossHitFx(); slashFx();
+  blip(300 + Math.min(run.combo, COMBO_CAP) * 10, 0.045, 0.09);
+  updateCombo();
+  if (r.status === 'complete') {
+    run.wordsDone++;
+    applyDamage(WORD_BONUS, true);
+    playSlash();
+    nextWord();
   } else {
-    ctx.drawImage(img, cx, cy, drawW, drawH);
+    renderWord();
   }
-  ctx.restore();
-  if (u.hp < u.maxHp) {
-    const pct = Math.max(0, u.hp/u.maxHp);
-    ctx.fillStyle='#0008'; ctx.fillRect(cx-1,cy-8,drawW+2,5);
-    ctx.fillStyle=pct>0.5?'#4dff6e':pct>0.25?'#ffcc00':'#ff4136';
-    ctx.fillRect(cx,cy-7,Math.round(drawW*pct),3);
+}
+
+function onKill(){
+  run.killed = true;
+  bossEl.classList.add('dying');
+  setTimeout(() => { bossEl.classList.remove('dying'); bossEl.classList.add('dead'); }, 700);
+  run.damage += KILL_BONUS;
+  $('kbSub').textContent = '討伐ボーナス +' + fmt(KILL_BONUS) + ' ／ 残り時間はオーバーキル！';
+  $('killBanner').classList.add('on');
+  setTimeout(() => $('killBanner').classList.remove('on'), 2600);
+  blip(880, 0.4, 0.15, 'triangle'); setTimeout(()=>blip(1320,0.5,0.12,'triangle'), 120);
+}
+
+// ═══════════════════════════════════════════════
+// プレイの開始と終了
+// ═══════════════════════════════════════════════
+function startCountdown(){
+  if (state === 'countdown' || state === 'playing') return;
+  // 名前を保存
+  const nm = $('nameIn').value.trim();
+  profile.name = nm || profile.name || '名無しの探索者';
+  saveProfile();
+  showOverlay('ovCount');
+  state = 'countdown';
+  let n = 3;
+  $('countNum').textContent = n;
+  blip(440, 0.1);
+  const iv = setInterval(() => {
+    n--;
+    if (n > 0) { $('countNum').textContent = n; blip(440, 0.1); return; }
+    clearInterval(iv);
+    $('countNum').textContent = 'GO!';
+    blip(880, 0.25);
+    setTimeout(beginRun, 350);
+  }, 700);
+}
+
+function beginRun(){
+  run = newRun();
+  bossEl.classList.remove('dead','dying');
+  setBossVisual();
+  state = 'playing';
+  showOverlay(null);
+  $('timerBig').style.display = 'block';
+  $('timerBig').classList.remove('warn');
+  nextWord();
+  updateOrb(); updateCombo();
+  run.endAt = Date.now() + RUN_SECONDS * 1000;
+  run.timerId = setInterval(tick, 100);
+  tick();
+}
+
+function tick(){
+  const left = Math.max(0, run.endAt - Date.now());
+  const sec = Math.ceil(left / 1000);
+  $('timeLeft').textContent = sec;
+  if (sec <= 10) $('timerBig').classList.add('warn');
+  if (left <= 0) endRun();
+}
+
+function endRun(){
+  clearInterval(run.timerId);
+  state = 'result';
+  $('timerBig').style.display = 'none';
+  $('comboTag').classList.remove('on');
+
+  daily.tries++;
+  const isBest = run.damage > daily.best;
+  if (isBest) daily.best = run.damage;
+  if (run.damage > (profile.bestAll||0)) profile.bestAll = run.damage;
+
+  let newClear = false;
+  if (run.killed && !daily.cleared) {
+    daily.cleared = true; newClear = true;
+    // ストリーク：昨日もクリアしてたら+1、切れてたら1から
+    const y = new Date(jstNow().getTime() - 86400e3).toISOString().slice(0,10);
+    profile.streak = (profile.lastClearDate === y) ? profile.streak + 1 : 1;
+    profile.totalClears++;
+    profile.lastClearDate = TODAY;
   }
-  if (u.type === 'god' && u.risingY === undefined) {
-    const cy2 = groundY - drawH*0.5 + off;
-    const pulse = 0.5+0.5*Math.sin(Date.now()/420);
-    ctx.save(); ctx.globalAlpha=0.18+0.12*pulse; ctx.globalCompositeOperation='lighter';
-    const grad=ctx.createRadialGradient(u.x,cy2,0,u.x,cy2,drawH*0.7);
-    grad.addColorStop(0,'#fff7c0'); grad.addColorStop(0.5,'#ffe06688'); grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(u.x,cy2,drawH*0.7,0,Math.PI*2); ctx.fill();
-    ctx.restore();
+  saveDaily(); saveProfile(); updateHud();
+
+  // 結果画面
+  $('resState').className = run.killed ? 'resCleared' : 'resFailed';
+  $('resState').textContent = run.killed ? '討 伐 成 功 ！' : '討伐ならず……あと ' + fmt(run.bossHp) + ' 削れば倒せた';
+  $('resDmg').textContent = fmt(run.damage);
+  $('resDetail').innerHTML =
+    (isBest ? '<b style="color:var(--gold)">今日のベスト更新！</b>　' : '') +
+    '正確' + run.typedChars + '打 ／ ミス' + run.missChars + ' ／ 最大' + run.maxCombo + 'コンボ ／ ' + run.wordsDone + '語';
+  $('btnRetry').textContent = daily.cleared ? '討伐済み！また明日' : 'もう一回（Enter）';
+  $('btnRetry').disabled = daily.cleared && !DEBUG;
+  showOverlay('ovResult');
+
+  // 送信＆ランキング（失敗してもゲームは成立）
+  if (window._submitRaid) {
+    window._submitRaid({ uid: profile.uid, name: profile.name, mode:'raid1min',
+      boss: TODAY_BOSS.id, date: TODAY, damage: run.damage, cleared: run.killed });
   }
-  // 魔王：脈動する暗黒（赤黒）オーラ
-  if ((u.type === 'demonlord' || u.type === 'allydemon') && u.risingY === undefined) {
-    const cy2 = groundY - drawH*0.45 + off;
-    const pulse = 0.5+0.5*Math.sin(Date.now()/380);
-    ctx.save(); ctx.globalAlpha=0.16+0.14*pulse; ctx.globalCompositeOperation='lighter';
-    const grad=ctx.createRadialGradient(u.x,cy2,0,u.x,cy2,drawH*0.7);
-    grad.addColorStop(0,'#ff3300'); grad.addColorStop(0.5,'#88000088'); grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(u.x,cy2,drawH*0.7,0,Math.PI*2); ctx.fill();
-    ctx.restore();
+  refreshRanking('rankList');
+}
+
+async function refreshRanking(listId){
+  const el = $(listId);
+  el.innerHTML = '<div class="sub">読み込み中…</div>';
+  if (!window._fetchRaidRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
+  const rows = await window._fetchRaidRanking(TODAY);
+  if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
+  if (!rows.length) { el.innerHTML = '<div class="sub">まだ記録なし。一番乗り！</div>'; return; }
+  el.innerHTML = rows.slice(0, 10).map((r, i) =>
+    '<div class="rrow' + (r.uid === profile.uid ? ' me' : '') + '">' +
+    '<span>' + (i+1) + '位 <span class="rname">' + escapeHtml(r.name) + (r.cleared ? ' ⚔' : '') + '</span></span>' +
+    '<span class="rdmg">' + fmt(r.damage) + '</span></div>'
+  ).join('');
+  const myIdx = rows.findIndex(r => r.uid === profile.uid);
+  if (myIdx >= 10) {
+    const r = rows[myIdx];
+    el.innerHTML += '<div class="rrow me"><span>' + (myIdx+1) + '位 <span class="rname">' +
+      escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.damage) + '</span></div>';
   }
-  // 猫・蝙蝠：浮遊する魔力オーラ（猫=ピンク／蝙蝠=青）
-  if ((u.type === 'cat' || u.type === 'bat' || u.type === 'allycat' || u.type === 'allybat') && u.risingY === undefined) {
-    const cy2 = groundY - drawH*0.5 + off;
-    const pulse = 0.5+0.5*Math.sin(Date.now()/400);
-    const c0 = (u.type==='cat'||u.type==='allycat') ? '#ff66cc' : '#88bbff';
-    const c1 = (u.type==='cat'||u.type==='allycat') ? '#aa228888' : '#3366cc88';
-    ctx.save(); ctx.globalAlpha=0.14+0.12*pulse; ctx.globalCompositeOperation='lighter';
-    const grad=ctx.createRadialGradient(u.x,cy2,0,u.x,cy2,drawH*0.65);
-    grad.addColorStop(0,c0); grad.addColorStop(0.5,c1); grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(u.x,cy2,drawH*0.65,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-  if (u.isHero && u.landingY !== undefined) {
-    const pulse = 0.5+0.5*Math.sin(Date.now()/80);
-    ctx.save(); ctx.globalAlpha=0.35*pulse;
-    const grad=ctx.createRadialGradient(u.x,groundY,0,u.x,groundY,60);
-    grad.addColorStop(0,'#fff7aa'); grad.addColorStop(1,'transparent');
-    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(u.x,groundY,60,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-  return true;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ═══════════════════════════════════════════════
+// オーバーレイ制御
+// ═══════════════════════════════════════════════
+function showOverlay(id){
+  for (const o of ['ovTitle','ovCount','ovResult','ovLocked'])
+    $(o).style.display = (o === id) ? 'flex' : 'none';
+}
+
+function showLocked(){
+  state = 'locked';
+  setBossVisual();
+  bossEl.classList.add('dead');
+  updateOrb();
+  $('bossLiquid').style.height = '0%'; $('hptext').textContent = '0%'; $('hpsub').textContent = '討伐済み';
+  $('lockBossName').textContent = TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
+  $('lockStats').innerHTML = '今日のベスト <b style="color:var(--gold)">' + fmt(daily.best) + '</b>' +
+    '　通算討伐 <b>' + profile.totalClears + '</b>体　連続 <b>' + profile.streak + '</b>日';
+  showOverlay('ovLocked');
+  refreshRanking('rankList2');
 }
 
 // ═══════════════════════════════════════════════
-// WORD POOLS (5 waves, increasing length)
+// 入力（typing-engine の IME回避キー取得）
 // ═══════════════════════════════════════════════
-const WORD_POOLS = [
-  // Wave 1 — 2-3文字 (30語)
-  [{k:'ねこ',r:'neko'},{k:'いぬ',r:'inu'},{k:'やま',r:'yama'},{k:'かわ',r:'kawa'},
-   {k:'そら',r:'sora'},{k:'うみ',r:'umi'},{k:'はな',r:'hana'},{k:'つき',r:'tsuki'},
-   {k:'ほし',r:'hoshi'},{k:'くも',r:'kumo'},{k:'かぜ',r:'kaze'},{k:'みず',r:'mizu'},
-   {k:'ゆき',r:'yuki'},{k:'もり',r:'mori'},{k:'あめ',r:'ame'},{k:'いわ',r:'iwa'},
-   {k:'はる',r:'haru'},{k:'なつ',r:'natsu'},{k:'あき',r:'aki'},{k:'ふゆ',r:'fuyu'},
-   {k:'とり',r:'tori'},{k:'むし',r:'musi'},{k:'くさ',r:'kusa'},{k:'つち',r:'tuti'},
-   {k:'ひ',r:'hi'},{k:'かみ',r:'kami'},{k:'まち',r:'mati'},{k:'さか',r:'saka'},
-   {k:'ふね',r:'hune'},{k:'むら',r:'mura'}],
-  // Wave 2 — 3-4文字 (30語)
-  [{k:'さくら',r:'sakura'},{k:'りんご',r:'ringo'},{k:'たいこ',r:'taiko'},
-   {k:'かがみ',r:'kagami'},{k:'つるぎ',r:'tsurugi'},{k:'ゆうしゃ',r:'yuusha'},
-   {k:'ほのお',r:'honoo'},{k:'でんしゃ',r:'densha'},{k:'おにぎり',r:'onigiri'},
-   {k:'かみなり',r:'kaminari'},{k:'たいよう',r:'taiyou'},{k:'こうえん',r:'kouen'},
-   {k:'はるかぜ',r:'harukaze'},{k:'ゆうやけ',r:'yuuyake'},{k:'たなばた',r:'tanabata'},
-   {k:'ひかり',r:'hikari'},{k:'くだもの',r:'kudamono'},{k:'たから',r:'takara'},
-   {k:'おかし',r:'okasi'},{k:'みなと',r:'minato'},{k:'かいがら',r:'kaigara'},
-   {k:'すなはま',r:'sunahama'},{k:'ながれ',r:'nagare'},{k:'かがやき',r:'kagayaki'},
-   {k:'あおぞら',r:'aozora'},{k:'たいけい',r:'taikei'},{k:'しろくま',r:'sirokuma'},
-   {k:'ふるさと',r:'hurusato'},{k:'にじいろ',r:'niziiro'},{k:'ひるやすみ',r:'hiruyasumi'}],
-  // Wave 3 — 3-4文字 Wave2と同レベル・戦闘テーマ (30語)
-  [{k:'むてき',r:'muteki'},{k:'たたかい',r:'tatakai'},{k:'さむらい',r:'samurai'},
-   {k:'まもの',r:'mamono'},{k:'せいけん',r:'seiken'},{k:'はがね',r:'hagane'},
-   {k:'くのいち',r:'kunoiti'},{k:'しにがみ',r:'sinigami'},{k:'もうこう',r:'moukou'},
-   {k:'せいれい',r:'seirei'},{k:'てきたい',r:'tekitai'},{k:'げんかい',r:'genkai'},
-   {k:'えいゆう',r:'eiyuu'},{k:'かたな',r:'katana'},{k:'ほうろう',r:'hourou'},
-   {k:'いくさ',r:'ikusa'},{k:'つわもの',r:'tuwamono'},{k:'けもの',r:'kemono'},
-   {k:'のろい',r:'noroi'},{k:'やいば',r:'yaiba'},{k:'きずな',r:'kizuna'},
-   {k:'まじない',r:'mazinai'},{k:'ちから',r:'tikara'},{k:'たましい',r:'tamasii'},
-   {k:'おうさま',r:'ousama'},{k:'ゆうしゃ',r:'yuusya'},{k:'りゅうせい',r:'ryuusei'},
-   {k:'まほうし',r:'mahousi'},{k:'あくりょく',r:'akuryoku'},{k:'せんとう',r:'sentou'}],
-  // Wave 4 — Wave3と同レベル・魔王テーマ (30語)
-  [{k:'まおう',r:'maou'},{k:'あんこく',r:'ankoku'},{k:'よろい',r:'yoroi'},
-   {k:'りゅうき',r:'ryuuki'},{k:'ほのお',r:'honoo'},{k:'やみ',r:'yami'},
-   {k:'おうじゃ',r:'ouja'},{k:'けんし',r:'kensi'},{k:'ちょうぜつ',r:'chouzetu'},
-   {k:'どうぐ',r:'dougu'},{k:'たましい',r:'tamasii'},{k:'ぐんだん',r:'gundan'},
-   {k:'しょうき',r:'syouki'},{k:'まじん',r:'mazin'},{k:'きょうふ',r:'kyouhu'},
-   {k:'あくたい',r:'akutai'},{k:'くらやみ',r:'kurayami'},{k:'やいば',r:'yaiba'},
-   {k:'もうりょう',r:'mouryou'},{k:'はめつ',r:'hametu'},{k:'えんま',r:'enma'},
-   {k:'じごく',r:'zigoku'},{k:'あくりょう',r:'akuryou'},{k:'いんが',r:'inga'},
-   {k:'ゆうべ',r:'yuube'},{k:'まじない',r:'mazinai'},{k:'のろい',r:'noroi'},
-   {k:'あくむ',r:'akumu'},{k:'はくや',r:'hakuya'},{k:'けだもの',r:'kedamono'}],
-  // Wave 5 — Wave3と同レベル・神テーマ (30語)
-  [{k:'かみさま',r:'kamisama'},{k:'ひかり',r:'hikari'},{k:'てんし',r:'tensi'},
-   {k:'せいや',r:'seiya'},{k:'えいこう',r:'eikou'},{k:'しんわ',r:'sinwa'},
-   {k:'きゅうてん',r:'kyuuten'},{k:'せいれい',r:'seirei'},{k:'むてき',r:'muteki'},
-   {k:'てんくう',r:'tenkuu'},{k:'おおぞら',r:'oozora'},{k:'たいよう',r:'taiyou'},
-   {k:'げんそう',r:'gensou'},{k:'しんせい',r:'sinsei'},{k:'えいえん',r:'eien'},
-   {k:'むげん',r:'mugen'},{k:'りそう',r:'risou'},{k:'てんのう',r:'tennou'},
-   {k:'きせき',r:'kiseki'},{k:'かがやき',r:'kagayaki'},{k:'せいてん',r:'seiten'},
-   {k:'みらい',r:'mirai'},{k:'あけぼの',r:'akebono'},{k:'れんげ',r:'renge'},
-   {k:'しんぴ',r:'sinpi'},{k:'ほうこう',r:'houkou'},{k:'かいてん',r:'kaiten'},
-   {k:'とわ',r:'towa'},{k:'たいら',r:'taira'},{k:'むびょう',r:'mubyou'}],
-];
-
-function enemyCastleMaxHPForWave(wave) {
-  return [250, 350, 500, 650, 900][wave-1] || 250;
-}
-
-// ═══════════════════════════════════════════════
-// BOSS DEFINITIONS
-// ═══════════════════════════════════════════════
-const BOSS_DEFS = [
-  {name:'アメーバ',         type:'amoeba',    hp:500,  dmg:5,  atkRate:1000, specialRate:4000, speed:0.013, atkRange:70,  spriteW:10, spriteH:12, score:100},
-  {name:'空飛ぶ魔猫ニャルガ',  type:'cat',       hp:3600, dmg:8,  atkRate:1300, specialRate:4500, speed:0.012, atkRange:80,  spriteW:14, spriteH:14, score:250},
-  {name:'夜空の大蝙蝠ヴェル', type:'bat',       hp:3200, dmg:12, atkRate:900,  specialRate:3500, speed:0.015, atkRange:75,  spriteW:16, spriteH:12, score:400},
-  {name:'魔王',            type:'demonlord', hp:1600, dmg:24, atkRate:1800, specialRate:7000, speed:0.006, atkRange:85,  spriteW:12, spriteH:18, score:600},
-  {name:'神',              type:'god',       hp:9600, dmg:42, atkRate:1300, specialRate:5000, speed:0.011, atkRange:110, spriteW:12, spriteH:20, score:1000},
-];
-const BOSS_FORCE_TIMES = [90000, 90000, 90000, 90000, 90000];
-
-function getBossSprites(type) {
-  return {
-    amoeba:    [SPRITE_AMOEBA,   SPRITE_AMOEBA2],
-    cat:       [SPRITE_WITCH,    SPRITE_WITCH2],
-    bat:       [SPRITE_POME,     SPRITE_POME2],
-    demonlord: [SPRITE_DEMON,    SPRITE_DEMON],
-    god:       [SPRITE_GOD,      SPRITE_GOD],
-  }[type];
-}
-
-// ═══════════════════════════════════════════════
-// CANVAS & STATE
-// ═══════════════════════════════════════════════
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const CW = 800, CH = 370, GROUND = 280;
-
-let gs = { state: 'title' };
-let nextId = 0;
-
-// ═══════════════════════════════════════════════
-// UNIT FACTORY
-// ═══════════════════════════════════════════════
-function makeUnit(type, side, x) {
-  const waveMult = 1; // enemies stay at Wave 1 strength throughout
-  const allyHpMult = (side === 'ally' && (gs.wave||1) >= 4) ? 1.1 : 1;
-  const u = {
-    id: nextId++, type, side, x,
-    state: 'walk', target: null,
-    attackTimer: 0, animFrame: 0, animTimer: 0,
-    hp: 0, maxHp: 0, dmg: 0, atkRate: 0,
-    range: 0, speed: 0, score: 0,
-    spriteW: 10, spriteH: 16,
-  };
-  if (type==='soldier')   { u.hp=u.maxHp=35*allyHpMult;  u.dmg=11;  u.atkRate=1000; u.range=34;  u.speed=0.046; u.spriteW=12; u.spriteH=18; }
-  if (type==='archer')    { u.hp=u.maxHp=22*allyHpMult;  u.dmg=15;  u.atkRate=1400; u.range=140; u.speed=0.035; u.meleeRange=38; u.spriteW=12; u.spriteH=18; }
-  if (type==='hero')      { u.hp=u.maxHp=9999;            u.dmg=120; u.atkRate=1200; u.range=40;  u.speed=0.055; u.spriteW=12; u.spriteH=18; u.isHero=true; u.drawScale=1.5; }
-  if (type==='allydemon') { u.hp=u.maxHp=9999;            u.dmg=120; u.atkRate=1100; u.range=46;  u.speed=0.025; u.spriteW=12; u.spriteH=18; }
-  if (type==='allycat')   { u.hp=u.maxHp=120;             u.dmg=5;   u.atkRate=1100; u.range=38;  u.speed=0.044; u.spriteW=14; u.spriteH=14; }
-  if (type==='allybat')   { u.hp=u.maxHp=90;              u.dmg=7;   u.atkRate=900;  u.range=36;  u.speed=0.048; u.spriteW=16; u.spriteH=12; }
-  if (type==='goblin')    { u.hp=u.maxHp=Math.round(80*waveMult);  u.dmg=2;  u.atkRate=1300; u.range=32; u.speed=0.038; u.score=10; u.spriteW=10; u.spriteH=14; }
-  if (type==='hobgoblin') { u.hp=u.maxHp=Math.round(160*waveMult); u.dmg=6;  u.atkRate=1600; u.range=32; u.speed=0.024; u.score=25; u.spriteW=13; u.spriteH=18; }
-  return u;
-}
-
-function makeBoss(wave) {
-  const d = BOSS_DEFS[wave-1];
-  return {
-    ...d, id: nextId++, side: 'enemy', isBoss: true,
-    x: 650, maxHp: d.hp, state: 'walk',
-    target: null, attackTimer: 0, specialTimer: d.type === 'demonlord' ? d.specialRate - 1500 : 0,
-    animFrame: 0, animTimer: 0,
-    range: d.atkRange,
-  };
-}
-
-// ═══════════════════════════════════════════════
-// SPAWN INTERVALS
-// ═══════════════════════════════════════════════
-function goblinInterval() {
-  const t = gs.waveTime / 1000;
-  // 魔王出現中はゴブリンがたまに1匹出る程度
-  if (gs.boss && gs.boss.type === 'demonlord') return 18000;
-  const bossMult = gs.boss ? 5 : 1;
-  if (t < 15)  return 3500 * bossMult;
-  if (t < 40)  return 2200 * bossMult;
-  if (t < 80)  return 1600 * bossMult;
-  return 1200 * bossMult;
-}
-function hobInterval() {
-  if (gs.wave < 2) return Infinity;
-  // 魔王出現中はホブゴブリン出現なし
-  if (gs.boss && gs.boss.type === 'demonlord') return Infinity;
-  const t = gs.waveTime / 1000;
-  const bossMult = gs.boss ? 5 : 1;
-  if (t < 20)  return 7000 * bossMult;
-  if (t < 60)  return 4500 * bossMult;
-  return 3000 * bossMult;
-}
-
-// ═══════════════════════════════════════════════
-// WORD / TYPING
-// ═══════════════════════════════════════════════
-function pickWord() {
-  const pool = WORD_POOLS[Math.min(gs.wave - 1, 4)];
-  const recent = gs.recentWords || [];
-  const available = pool.filter(w => !recent.includes(w.r));
-  const candidates = available.length > 0 ? available : pool;
-  const w = candidates[Math.floor(Math.random() * candidates.length)];
-  gs.recentWords = [...recent.slice(-5), w.r];
-  return w;
-}
-function nextWord() {
-  gs.currentWord = pickWord();
-  gs.currentWord.units = kanaUnits(gs.currentWord.k);
-  gs.inputValue = '';
-  updateWordDisplay();
-  const inp = document.getElementById('type-input');
-  inp.value = ''; inp.classList.remove('wrong');
-}
-function updateWordDisplay(val='') {
-  if (!gs.currentWord) return;
-  const done = val || gs.inputValue;
-  document.getElementById('word-kana').textContent = gs.currentWord.k;
-  document.getElementById('roma-done').textContent = done;
-  document.getElementById('roma-left').textContent = kanaDisplay(gs.currentWord.units, done);
-}
-function updateWordDisplayError(inputVal) {
-  if (!gs.currentWord) return;
-  const wrongChar = inputVal.slice(gs.inputValue.length);
-  const left = kanaDisplay(gs.currentWord.units, gs.inputValue);
-  document.getElementById('word-kana').textContent = gs.currentWord.k;
-  document.getElementById('roma-done').textContent = gs.inputValue;
-  document.getElementById('roma-left').innerHTML =
-    `<span style="color:#ff4136;background:#2a0808;border-bottom:2px solid #ff4136">${wrongChar}</span>` +
-    `<span style="color:#445">${left}</span>`;
-}
-// キーダウンで直接1文字ずつ拾う（IME完全回避）
-document.addEventListener('keydown', function(e) {
-  // IME変換中は完全無視
-  if (e.isComposing) return;
-
-  // Enter: 次Waveへ
-  if (e.key === 'Enter' && gs.waitingForEnter) {
-    gs.waitingForEnter = false;
-    startNextWave();
-    return;
-  }
-  // Escape: ゲーム終了
-  if (e.key === 'Escape' && (gs.state === 'playing' || gs.state === 'waveclear')) {
-    endGame('lose');
-    return;
-  }
-
-  if (gs.state !== 'playing') return;
-
-  // Backspace: 1文字削除
-  if (e.key === 'Backspace') {
-    e.preventDefault();
-    processTyping(gs.inputValue.slice(0, -1));
-    return;
-  }
-
-  // a-z のみ受け付け（スペース・記号・日本語すべて無視）
-  if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
-    e.preventDefault();
-    processTyping(gs.inputValue + e.key.toLowerCase());
-  }
+attachKeyInput({
+  isActive: () => state === 'playing',
+  onChar,
+  onEnter: () => {
+    if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown(); return; }
+    if (state === 'title') startCountdown();
+    else if (state === 'result' && !$('btnRetry').disabled) startCountdown();
+  },
 });
 
-function processTyping(val) {
-  const inp = document.getElementById('type-input');
-  if (!gs.currentWord) { gs.inputValue = val; inp.value = val; return; }
-  const units = gs.currentWord.units;
-  const status = kanaMatch(units, val);
-  if (status !== 'no') {
-    const prev = gs.inputValue;
-    gs.inputValue = val;
-    inp.value = val;
-    inp.classList.remove('wrong');
-    updateWordDisplay(val);
-    if (val.length > prev.length) playKey();
-    if (status === 'complete') {
-      playWord();
-      gs.combo = (gs.combo || 0) + 1;
-      updateComboDisp();
-      gs.effects.push({type:'word', x:CW/2, y:50, timer:700, text:'兵士召喚！', color:'#FFD700'});
-      spawnAlly();
-      nextWord();
-    }
-  } else {
-    gs.missCount = (gs.missCount || 0) + 1;
-    if ((gs.combo || 0) > 0) { gs.combo = 0; updateComboDisp(); }
-    const maxLen = gs.inputValue.length + 1;
-    if (val.length > maxLen) val = val.slice(0, maxLen);
-    inp.value = val;
-    if (!inp.classList.contains('wrong')) playWrong();
-    inp.classList.add('wrong');
-    updateWordDisplayError(val);
-  }
-}
-
-// コンボ倍率：1コンボごとに+5%（最大2.0倍）
-function comboMult() {
-  return 1 + Math.min(gs.combo || 0, 20) * 0.05;
-}
-function updateComboDisp() {
-  const el = document.getElementById('comboDisp');
-  if (!el) return;
-  const c = gs.combo || 0;
-  if (c >= 2) {
-    el.style.display = 'block';
-    el.textContent = `${c} COMBO ×${comboMult().toFixed(2)}`;
-  } else {
-    el.style.display = 'none';
-  }
-}
-// 後方互換（参照が残っている場合用）
-function preventIME() {}
-function handleTyping() {}
+$('btnStart').addEventListener('click', startCountdown);
+$('btnRetry').addEventListener('click', () => { if (!$('btnRetry').disabled) startCountdown(); });
+$('audioBtn').addEventListener('click', () => {
+  audioOn = !audioOn;
+  $('audioBtn').style.color = audioOn ? 'var(--gold)' : '#555';
+  $('audioBtn').textContent = audioOn ? '♪' : '✕';
+});
 
 // ═══════════════════════════════════════════════
-// SPAWN
+// 起動
 // ═══════════════════════════════════════════════
-function spawnAlly() {
-  gs.spawnCount++;
-  const spawnPts = Math.round(500 * comboMult()); // 召喚ごとに+500×コンボ倍率
-  if (gs.allyDemonSpawned && gs.wave >= 5) {
-    gs.wave5SpecialCount = (gs.wave5SpecialCount || 0) + 1;
-    const spawnSpecial = gs.wave5SpecialCount % 5 === 0;
-    for (let i = 0; i < 5; i++) {
-      const g = makeUnit('goblin', 'ally', 60 + i * 12);
-      gs.units.push(g);
-    }
-    if (spawnSpecial) {
-      const specialType = Math.random() < 0.5 ? 'allycat' : 'allybat';
-      const sp = makeUnit(specialType, 'ally', 40);
-      gs.units.push(sp);
-      const label = specialType === 'allycat' ? '魔猫参上！' : '魔蝙蝠参上！';
-      const color = specialType === 'allycat' ? '#ff88dd' : '#88aaff';
-      gs.effects.push({type:'spawn', x:80, y:GROUND-60, timer:700, color});
-      gs.effects.push({type:'msg', x:160, y:GROUND-80, timer:1100, text:label, color, size:20});
-    }
-    gs.effects.push({type:'spawn', x:80, y:GROUND-22, timer:600, color:'#aa44ff'});
-    gs.effects.push({type:'msg', x:140, y:GROUND-60, timer:900, text:'×5！', color:'#cc88ff', size:22});
-    addScore(spawnPts * 5, 80, GROUND-75);
-    return;
-  }
-  gs.units.push(makeUnit('soldier', 'ally', 68));
-  gs.effects.push({type:'spawn', x:80, y:GROUND-22, timer:500, color:'#4dff6e'});
-  addScore(spawnPts, 80, GROUND-75);
-}
-
-// ═══════════════════════════════════════════════
-// BOSS SPECIAL ATTACKS
-// ═══════════════════════════════════════════════
-function doBossSpecial(boss) {
-  const allies = gs.units.filter(u => u.side==='ally' && u.state!=='dead');
-  switch (boss.type) {
-    case 'amoeba': {
-      // Blob projectile toward nearest ally
-      const near = allies.reduce((a,b) => Math.abs(b.x-boss.x)<Math.abs(a.x-boss.x)?b:a, {x:-9999});
-      if (near.x > -9999) {
-        gs.effects.push({type:'blob', x:boss.x, y:GROUND-18, tx:near.x, ty:GROUND-18,
-          timer:1200, maxT:1200, targetId:near.id, dmg:Math.round(boss.dmg*1.5)});
-        gs.effects.push({type:'msg', x:boss.x-20, y:GROUND-90, timer:800, text:'ぷにょ～！', color:'#88ff55'});
-      }
-      break;
-    }
-    case 'cat': {
-      // 魔猫の爪ひっかき — 前方3体に魔法の爪痕＋スタン
-      const targets = allies.slice().sort((a,b)=>b.x-a.x).slice(0,3);
-      gs.effects.push({type:'msg', x:boss.x, y:GROUND-150, timer:1000, text:'シャーッ！', color:'#ff66cc', size:22});
-      targets.forEach((t,i) => {
-        const ty = GROUND - (t.spriteH||14) * S / 2;
-        for (let k=0; k<3; k++) {
-          gs.effects.push({type:'slash', x:t.x+(k-1)*8, y:ty-(k-1)*6, timer:350, side:'enemy'});
-        }
-        gs.effects.push({type:'explosion', x:t.x, y:GROUND-30, timer:450, maxT:450, r:55, color:'#ff99dd', color2:'#cc2288'});
-        t.hp -= Math.round(boss.dmg*1.6);
-        t.stunTimer = 900;
-        if (t.hp <= 0) t.state = 'dead';
-      });
-      // ネコの鳴き声＋ひっかき音
-      tone(900, 0.18, 'sawtooth', 0.08, 1500);
-      tone(1400, 0.12, 'square', 0.05, 600);
-      tone(500, 0.2, 'triangle', 0.06, 1100);
-      break;
-    }
-    case 'bat': {
-      // 大蝙蝠の超音波 — 近距離音波リング＋範囲内ダメージ
-      gs.effects.push({type:'msg', x:boss.x, y:GROUND-150, timer:1000, text:'キィィィン！', color:'#aaccff', size:22});
-      for (let r=1; r<=3; r++) {
-        gs.effects.push({type:'shockwave', x:boss.x, y:GROUND-60, timer:400+r*90, maxT:400+r*90, r:r*40, color:'#bbddff'});
-      }
-      for (const a of allies) {
-        if (Math.abs(a.x - boss.x) < 120) {
-          a.hp -= Math.round(boss.dmg*0.4);
-          if (a.hp <= 0) a.state = 'dead';
-        }
-      }
-      // 甲高い超音波スイープ
-      tone(2200, 0.35, 'sine', 0.07, 700);
-      tone(1700, 0.3, 'sine', 0.06, 900);
-      tone(140, 0.25, 'sawtooth', 0.05, 80);
-      break;
-    }
-    case 'demonlord': {
-      // Dark flame explosion AoE — wide screen-filling blast
-      gs.effects.push({type:'explosion', x:boss.x, y:GROUND-30, timer:1400, maxT:1400, r:260, color:'#ff2200', color2:'#440000'});
-      gs.effects.push({type:'explosion', x:boss.x, y:GROUND-20, timer:1000, maxT:1000, r:180, color:'#ff6600', color2:'#aa1100'});
-      // Shockwave rings spreading outward
-      for (let r=1; r<=4; r++) {
-        gs.effects.push({type:'shockwave', x:boss.x, y:GROUND-20, timer:500+r*150, maxT:500+r*150, r:r*65, color:'#ff4400'});
-      }
-      for (let i=0; i<14; i++) {
-        gs.effects.push({type:'ember', x:boss.x+(Math.random()-0.5)*200, y:GROUND-20-Math.random()*120, timer:900+Math.random()*600, color: i%2===0 ? '#ff4400' : '#ff8800'});
-      }
-      for (const a of allies) {
-        const dist = a.x - boss.x; // negative = ally is to the left of boss
-        if (Math.abs(dist) < 300) {
-          a.hp -= Math.round(boss.dmg * 1.2);
-          if (a.hp <= 0) { a.state='dead'; }
-          else {
-            if (a.isHero) heroHit(a);
-            a.x = Math.max(80, a.x - 120);
-            if (a.state==='fight') { a.state='walk'; a.target=null; }
-          }
-        }
-      }
-      gs.effects.push({type:'msg', x:boss.x, y:GROUND-180, timer:1200, text:'暗黒大爆炎！', color:'#ff4400'});
-      tone(80, 0.5, 'sawtooth', 0.1, 60);
-      break;
-    }
-    case 'god': {
-      // 三連斜め神罰 — 時間差で3本の斜めビーム
-      const sorted = allies.slice().sort((a,b)=>b.x-a.x);
-      const targetsCopy = sorted.slice(0, 3).map(t => ({id: t.id, x: t.x}));
-      const bossX = boss.x;
-      const bossDmg = boss.dmg;
-      gs.effects.push({type:'msg', x:bossX, y:GROUND-200, timer:2800, text:'神の裁き！', color:'#ffee00'});
-      [0, 750, 1500].forEach((delay, i) => {
-        const tgt = targetsCopy[i];
-        const tx = tgt ? tgt.x : bossX - 140*(i+1);
-        setTimeout(() => {
-          if (gs.state !== 'playing') return;
-          // チャージ粒子
-          for (let p=0; p<10; p++) {
-            const ang = Math.random()*Math.PI*2;
-            gs.effects.push({type:'divineParticle', x:bossX+Math.cos(ang)*30, y:GROUND-140+Math.sin(ang)*30, timer:300, maxT:300});
-          }
-          setTimeout(() => {
-            if (gs.state !== 'playing') return;
-            // 斜めビーム（神から地上の標的へ）
-            gs.effects.push({type:'diagBeam', x1:bossX-10, y1:GROUND-200, x2:tx, y2:GROUND, timer:1000, maxT:1000});
-            gs.effects.push({type:'explosion', x:tx, y:GROUND-10, timer:900, maxT:900, r:120, color:'#ffffff', color2:'#ffee00'});
-            gs.effects.push({type:'explosion', x:tx, y:GROUND-10, timer:650, maxT:650, r:70, color:'#ffffcc', color2:'#ffaa00'});
-            for (let r=1; r<=5; r++) {
-              gs.effects.push({type:'shockwave', x:tx, y:GROUND, timer:300+r*80, maxT:300+r*80, r:r*45, color:'#ffee44'});
-            }
-            for (let e=0; e<8; e++) {
-              const ea = Math.random()*Math.PI*2;
-              gs.effects.push({type:'ember', x:tx, y:GROUND-15, timer:700, maxT:700, color:'#ffdd33', vx:Math.cos(ea)*2.5, vy:-Math.abs(Math.sin(ea))*3});
-            }
-            const unit = gs.units.find(u => u.id === tgt?.id && u.state !== 'dead');
-            if (unit) {
-              unit.hp -= Math.round(bossDmg * 1.5);
-              if (unit.hp <= 0) unit.state = 'dead';
-            }
-            tone(880 + i*330, 0.5, 'sine', 0.12, 440 + i*110);
-          }, 180);
-        }, delay);
-      });
-      break;
-    }
-  }
-}
-
-// 勇者の被弾リアクション：hitフレーム表示＋地面に沿って後ろへノックバック
-function heroHit(h) {
-  if (h.state === 'dead') return;
-  h.hitT = 700;
-  h.x = Math.max(40, h.x - 14);
-}
-
-// ═══════════════════════════════════════════════
-// UNIT UPDATE
-// ═══════════════════════════════════════════════
-function updateUnits(dt) {
-  const allUnits = gs.boss ? [...gs.units, gs.boss] : [...gs.units];
-
-  for (const u of allUnits) {
-    if (u.state === 'dead') continue;
-    if (u.landingY !== undefined) continue; // 勇者着地中は戦闘スキップ
-    if (u.risingY !== undefined) continue;  // 魔王浮上中は戦闘スキップ
-    u.animTimer += dt;
-    const _fc = IMAGE_DEFS[u.type]?.frames?.length || 2;
-    // 勇者は攻撃中（fight）は足が歩いて見えないようアニメを止める
-    if (u.isHero && u.state === 'fight') {
-      u.animFrame = 0;
-    } else if (u.animTimer > 420) {
-      u.animFrame = (u.animFrame+1)%_fc; u.animTimer = 0;
-    }
-    if (u.lungeT > 0) u.lungeT -= dt;
-    if (u.hitT > 0) u.hitT -= dt;
-
-    // Boss special timer
-    if (u.isBoss) {
-      u.specialTimer += dt;
-      if (u.specialTimer >= u.specialRate) {
-        u.specialTimer = 0;
-        doBossSpecial(u);
-      }
-    }
-
-    if (u.state === 'fight') {
-      if (!u.target || u.target.state === 'dead') {
-        u.state = 'walk'; u.target = null; continue;
-      }
-      u.attackTimer += dt;
-      if (u.attackTimer >= u.atkRate) {
-        u.attackTimer = 0;
-        u.target.hp -= u.dmg;
-        const ty = GROUND - u.target.spriteH * S / 2;
-        if (u.type === 'archer') {
-          const sy = GROUND - u.spriteH * S / 2;
-          gs.effects.push({type:'spell', x1:u.x+(u.side==='ally'?12:-12), y1:sy-10,
-            x2:u.target.x, y2:ty, timer:250, maxT:250});
-        } else if (u.type === 'hero') {
-          const ax = u.target.x;
-          // 突進モーション
-          u.lungeT = 260;
-          // 斬撃アーク＋黄色閃光
-          gs.effects.push({type:'slash', x:ax, y:ty, timer:280, side:u.side});
-          gs.effects.push({type:'explosion', x:ax, y:GROUND-60, timer:450, maxT:450, r:95, color:'#ffee00', color2:'#ffaa00'});
-          tone(680, 0.12, 'square', 0.07, 1100);
-          tone(220, 0.18, 'sawtooth', 0.06, 90);
-          const isDemonFight = u.target.isBoss && u.target.type === 'demonlord';
-          if (isDemonFight) {
-            if (!u.senkenUsed) {
-              // 初回のみ「聖剣一閃！」特大演出
-              u.senkenUsed = true;
-              gs.effects.push({type:'msg', x:ax, y:GROUND-150, timer:900, text:'聖剣一閃！', color:'#ffe066', size:24});
-              gs.effects.push({type:'explosion', x:ax, y:GROUND-70, timer:700, maxT:700, r:170, color:'#ffffff', color2:'#ffdd00'});
-              for (let r=1; r<=3; r++) gs.effects.push({type:'shockwave', x:ax, y:GROUND-20, timer:300+r*120, maxT:300+r*120, r:r*55, color:'#ffe066'});
-              tone(110, 0.5, 'sawtooth', 0.13, 55);
-            }
-            // 約2秒間隔で連続攻撃を抑制（戦いを見せる）
-            u.attackTimer = -1200;
-          }
-        } else if (u.type === 'allydemon') {
-          // 魔王スペシャルと同じ見た目の爆炎攻撃
-          const ax = u.target.x;
-          gs.effects.push({type:'explosion', x:ax, y:GROUND-30, timer:1000, maxT:1000, r:160, color:'#ff2200', color2:'#440000'});
-          gs.effects.push({type:'explosion', x:ax, y:GROUND-20, timer:700,  maxT:700,  r:100, color:'#ff6600', color2:'#aa1100'});
-          for (let r=1; r<=3; r++) {
-            gs.effects.push({type:'shockwave', x:ax, y:GROUND-20, timer:300+r*100, maxT:300+r*100, r:r*45, color:'#ff4400'});
-          }
-          for (let i=0; i<6; i++) {
-            const ang = (i/6)*Math.PI*2;
-            gs.effects.push({type:'ember', x:ax+Math.cos(ang)*10, y:GROUND-20, timer:500, maxT:500, color:'#ff6600'});
-          }
-          tone(120, 0.3, 'sawtooth', 0.09, 80);
-          // 魔王⇔神 ノックバック（Wave5）
-          if (gs.wave === 5 && u.target.type === 'god') {
-            u.target.x = Math.min(CW - 40, u.target.x + 60);
-            u.x = Math.max(40, u.x - 35);
-          }
-        } else if (u.isBoss && u.type === 'god') {
-          // 神の通常攻撃：黄金の打撃エフェクト
-          const ax = u.target.x;
-          gs.effects.push({type:'explosion', x:ax, y:GROUND-50, timer:500, maxT:500, r:100, color:'#ffffcc', color2:'#ffcc00'});
-          gs.effects.push({type:'diagBeam', x1:u.x, y1:GROUND-160, x2:ax, y2:GROUND-30, timer:400, maxT:400});
-          for (let r=1; r<=3; r++) gs.effects.push({type:'shockwave', x:ax, y:GROUND-20, timer:200+r*80, maxT:200+r*80, r:r*38, color:'#ffee44'});
-          tone(220, 0.3, 'sine', 0.09, 280);
-        } else if (u.isBoss && u.type === 'cat') {
-          // 魔猫の通常攻撃：爪のひっかき（2連スラッシュ）
-          const ax = u.target.x;
-          gs.effects.push({type:'slash', x:ax, y:ty, timer:260, side:'enemy'});
-          gs.effects.push({type:'slash', x:ax+6, y:ty-8, timer:260, side:'enemy'});
-          gs.effects.push({type:'explosion', x:ax, y:GROUND-25, timer:300, maxT:300, r:35, color:'#ff99dd', color2:'#cc2288'});
-          tone(760, 0.12, 'sawtooth', 0.06, 1300);
-        } else if (u.isBoss && u.type === 'bat') {
-          // 大蝙蝠の通常攻撃：急降下の体当たり＋小音波
-          const ax = u.target.x;
-          gs.effects.push({type:'slash', x:ax, y:ty, timer:240, side:'enemy'});
-          for (let r=1; r<=2; r++) gs.effects.push({type:'shockwave', x:ax, y:GROUND-40, timer:200+r*70, maxT:200+r*70, r:r*28, color:'#bbddff'});
-          tone(1600, 0.1, 'sine', 0.05, 600);
-        } else {
-          gs.effects.push({type:'slash', x:u.target.x, y:ty, timer:280, side:u.side});
-        }
-        if (u.target.hp <= 0) {
-          u.target.state = 'dead';
-          if (u.target.side === 'enemy') {
-            if (u.target.isBoss) {
-              addScore(u.target.score * 10, u.target.x, GROUND-100);
-              onBossDead();
-            } else {
-              addScore(500, u.target.x, GROUND-55);
-            }
-          }
-          u.state = 'walk'; u.target = null;
-        }
-      }
-    } else {
-      // Stun check
-      if (u.stunTimer > 0) { u.stunTimer -= dt; continue; }
-      const dir = u.side === 'ally' ? 1 : -1;
-      u.x += u.speed * dir * dt;
-
-      // Wave5: 神は x=370〜560 の戦場に固定。城まで突っ込まず、右に詰められすぎない
-      if (u === gs.boss && gs.wave === 5 && u.type === 'god') {
-        if (u.x < 370) u.x = 370;
-        if (u.x > 560) u.x = 560;
-      }
-      // Boss appears when first ally crosses into enemy territory
-      if (u.side === 'ally' && u.x >= 560 && !gs.bossSpawned && !gs.boss && gs.state === 'playing') {
-        triggerBossSpawn();
-      }
-
-      // Castle wall: ally dies here; damages castle only after boss is out
-      if (u.side === 'ally' && u.x >= 726) {
-        // Wave5: 神が生きている間は城を壊せない（神討伐がクライマックス）
-        const castleLocked = gs.wave === 5 && gs.boss && gs.boss.type === 'god';
-        if (gs.bossSpawned && !castleLocked) {
-          gs.enemyCastleHP = Math.max(0, gs.enemyCastleHP - 40);
-          gs.effects.push({type:'hit', x:750, y:GROUND-50, timer:380});
-          if (gs.enemyCastleHP <= 0 && gs.state === 'playing') {
-            onWaveClear();
-          }
-        }
-        u.state = 'dead';
-        continue;
-      }
-
-      if (u.side === 'enemy' && u.x <= 68) {
-        endGame('lose');
-        return;
-      }
-
-      // Build candidate list for targeting
-      const enemies = allUnits.filter(e => e.side !== u.side && e.state !== 'dead');
-      let best = null, bestDist = Infinity;
-      for (const e of enemies) {
-        const d = Math.abs(e.x - u.x);
-        if (d > u.range) continue;
-        if (u.type === 'archer') {
-          const mRange = u.meleeRange || 40;
-          if (d >= mRange) { if (d < bestDist) { best = e; bestDist = d; } }
-          else if (!best)  { best = e; bestDist = d; }
-        } else {
-          if (d < bestDist) { best = e; bestDist = d; }
-        }
-      }
-      if (best) { u.state = 'fight'; u.target = best; }
-    }
-  }
-
-  // Check boss hp from direct hits
-  if (gs.boss && gs.boss.hp <= 0 && gs.boss.state !== 'dead') {
-    gs.boss.state = 'dead';
-    addScore(gs.boss.score * 10, gs.boss.x, GROUND-120);
-    onBossDead();
-  }
-
-  gs.units = gs.units.filter(u => u.state !== 'dead');
-  if (gs.boss && gs.boss.state === 'dead') gs.boss = null;
-}
-
-function triggerBossSpawn() {
-  if (gs.bossSpawned || gs.boss) return;
-  gs.bossSpawned = true;
-  playBossSpawn();
-
-  // Knockback all enemies
-  for (const u of gs.units) {
-    if (u.side === 'enemy') {
-      u.x = Math.min(720, u.x + 100);
-      if (u.state === 'fight') { u.state = 'walk'; u.target = null; }
-    }
-  }
-
-  const boss = makeBoss(gs.wave);
-  gs.boss = boss;
-  gs.waveMsg = {text:`⚠ ${BOSS_DEFS[gs.wave-1].name} 出現！`, timer:2500, color:'#ff4400'};
-
-  // ボス BGM：WARNING → 通常曲フェードアウト → 約0.5秒の間 → ボス曲
-  const bossBgmKey = {cat:'boss2', bat:'boss3', demonlord:'demon', god:'boss5'}[boss.type];
-  if (bossBgmKey) {
-    stopBGM(1300);
-    setTimeout(() => playBGM(bossBgmKey, { fadeMs: 1800 }), 1800);
-  }
-
-  // 魔王登場テロップ＋効果音（敵・Wave4）
-  if (boss.type === 'demonlord') {
-    gs.effects.push({type:'msg', x:CW/2, y:CH/2-20, timer:3000, text:'魔王が現れた！', color:'#ff2200', size:36});
-    gs.effects.push({type:'explosion', x:CW/2, y:GROUND-40, timer:800, maxT:800, r:200, color:'#440000', color2:'#ff2200'});
-    for (let r=1; r<=4; r++) {
-      gs.effects.push({type:'shockwave', x:CW/2, y:GROUND-20, timer:400+r*150, maxT:400+r*150, r:r*70, color:'#ff2200'});
-    }
-    playDemonBirth();
-  }
-
-  // 神・降臨（Wave5）— 派手な天罰演出＋場の兵士を一掃
-  if (boss.type === 'god') {
-    gs.effects.push({type:'msg', x:CW/2, y:CH/2-30, timer:3200, text:'神、降臨', color:'#fff7c0', size:42});
-    // 画面全体を覆う黄金の閃光・衝撃波
-    gs.effects.push({type:'explosion', x:CW/2, y:GROUND-40, timer:1100, maxT:1100, r:CW, color:'#ffffff', color2:'#ffe066'});
-    gs.effects.push({type:'explosion', x:boss.x, y:GROUND-60, timer:900, maxT:900, r:280, color:'#fff7c0', color2:'#ffcc00'});
-    for (let r=1; r<=7; r++) {
-      gs.effects.push({type:'shockwave', x:CW/2, y:GROUND-20, timer:400+r*120, maxT:400+r*120, r:r*70, color:'#ffe066'});
-    }
-    for (let p=0; p<28; p++) {
-      const ang = Math.random()*Math.PI*2;
-      gs.effects.push({type:'divineParticle', x:CW/2+Math.cos(ang)*60, y:GROUND-120+Math.sin(ang)*60, timer:1000, maxT:1000});
-    }
-    // 神の威光：場にいる味方兵士（魔王以外）を一掃。城付近に降臨ビームを落とす
-    for (const a of gs.units) {
-      if (a.side === 'ally' && a.type !== 'allydemon' && a.state !== 'dead') {
-        gs.effects.push({type:'diagBeam', x1:boss.x-10, y1:GROUND-200, x2:a.x, y2:GROUND, timer:700, maxT:700});
-        gs.effects.push({type:'explosion', x:a.x, y:GROUND-10, timer:600, maxT:600, r:55, color:'#ffffcc', color2:'#ffee00'});
-        a.state = 'dead';
-      }
-    }
-    playBossSpawn();
-    tone(110, 0.8, 'sawtooth', 0.14, 70);
-    tone(220, 0.6, 'sine',     0.10, 440);
-  }
-
-  updateBossBar();
-}
-
-function onBossDead() {
-  playBossDie();
-  gs.boss = null;
-  // Keep gs.bossSpawned = true so no second boss spawns this wave
-  const bossName = BOSS_DEFS[gs.wave-1].name;
-  gs.effects.push({type:'msg', x:CW/2, y:CH/2-40, timer:2000, text:`${bossName} を倒した！`, color:'#FFD700'});
-  updateBossBar();
-  onWaveClear();
-}
-
-function onWaveClear() {
-  if (gs.state === 'waveclear') return;
-  gs.state = 'waveclear';
-  if (gs.wave >= 5) {
-    gs.waveMsg = {text:'神を倒した！全Wave制覇！', timer:3000, color:'#FFD700'};
-    setTimeout(() => endGame('win'), 3200);
-  } else {
-    gs.waveMsg = {text:`WAVE ${gs.wave} クリア！`, timer:2500, color:'#4dff6e'};
-    setTimeout(() => { gs.waitingForEnter = true; }, 2600);
-  }
-}
-
-function startNextWave() {
-  gs.wave++;
-  gs.waveTime = 0;
-  gs.bossSpawned = false;
-  gs.boss = null;
-  gs.units = [];
-  gs.effects = [];
-  gs.goblinTimer = -3000;
-  gs.hobTimer = 0;
-  gs.waitingForEnter = false;
-  gs.heroSpawned = false;
-  gs.allyDemonSpawned = false;
-  gs.heroMsg = null;
-  gs.recentWords = [];
-  gs.enemyCastleHP = enemyCastleMaxHPForWave(gs.wave);
-  gs.enemyCastleMaxHP = gs.enemyCastleHP;
-  gs.state = 'playing';
-  document.getElementById('waveNum').textContent = gs.wave;
-  gs.waveMsg = {text:`⚔ WAVE ${gs.wave} ⚔`, timer:2500, color:'#FFD700'};
-  playWave();
-  // BGM: Wave2 以降は通常曲（Wave1 のみ専用曲）
-  playBGM(gs.wave === 1 ? 'wave1' : 'normal', { fadeMs: 2000 });
-  updateEnemyCastleHud();
-  nextWord();
-  document.getElementById('type-input').focus();
-}
-
-// ═══════════════════════════════════════════════
-// EFFECT PROJECTILE RESOLUTION
-// ═══════════════════════════════════════════════
-function updateEffects(dt) {
-  for (const e of gs.effects) {
-    e.timer -= dt;
-    // Blob / bolt projectile hit resolution
-    if ((e.type === 'blob' || e.type === 'bolt') && e.timer <= 0) {
-      const tgt = gs.units.find(u => u.id === e.targetId && u.state !== 'dead');
-      if (tgt) {
-        tgt.hp -= e.dmg;
-        if (e.stun) tgt.stunTimer = (tgt.stunTimer||0) + e.stun;
-        if (tgt.hp <= 0) tgt.state = 'dead';
-        gs.effects.push({type:'hit', x:tgt.x, y:GROUND-tgt.spriteH*S/2, timer:380});
-      }
-    }
-  }
-  gs.effects = gs.effects.filter(e => e.timer > 0);
-  if (gs.waveMsg) { gs.waveMsg.timer -= dt; if (gs.waveMsg.timer <= 0) gs.waveMsg = null; }
-  if (gs.heroMsg) { gs.heroMsg.timer -= dt; if (gs.heroMsg.timer <= 0) gs.heroMsg = null; }
-}
-
-function spawnEnemies(dt) {
-  if (gs.state !== 'playing') return;
-  gs.goblinTimer += dt;
-  gs.hobTimer += dt;
-  if (gs.goblinTimer >= goblinInterval()) {
-    gs.goblinTimer = 0;
-    gs.units.push(makeUnit('goblin','enemy',730));
-  }
-  if (gs.hobTimer >= hobInterval()) {
-    gs.hobTimer = 0;
-    gs.units.push(makeUnit('hobgoblin','enemy',730));
-  }
-
-  // Force boss if wave time exceeded
-  if (!gs.bossSpawned && !gs.boss) {
-    const forceT = BOSS_FORCE_TIMES[gs.wave-1];
-    if (gs.waveTime >= forceT) {
-      triggerBossSpawn();
-    }
-  }
-
-  // Wave5: 開始20秒で味方魔王出現（ボスサイズ・下から浮上）
-  if (!gs.allyDemonSpawned && gs.wave >= 5 && gs.waveTime >= 40000) {
-    gs.allyDemonSpawned = true;
-    const ad = makeUnit('allydemon', 'ally', 200);
-    ad.dmg *= 2; // Wave5: 神との死闘用。一方的にならない数値
-    ad.isBossScale = true; // ボスと同じスケールで描画
-    ad.risingY = GROUND + ad.spriteH * BS + 20; // 地面の下からスタート
-    ad.risingTarget = GROUND;
-    ad.risingSpeed = 0.12; // px/ms
-    gs.units.push(ad);
-    gs.effects.push({type:'msg', x:CW/2, y:CH/2-40, timer:2000, text:'地の底が、揺れる…', color:'#aa00ff'});
-  }
-
-  // 勇者: Wave2・Wave3 — 敵が城手前（x≤200）に来たら緊急サポート降臨（1回だけ）
-  if (!gs.heroSpawned && (gs.wave === 2 || gs.wave === 3)) {
-    const nearEnemy = gs.units.find(u => u.side === 'enemy' && u.state !== 'dead' && u.x <= 200);
-    if (nearEnemy) {
-      gs.heroSpawned = true;
-      const hero = makeUnit('hero', 'ally', 110);
-      hero.landingY = -hero.spriteH * S * 1.5;
-      hero.landingTarget = GROUND;
-      hero.landingSpeed = 0.6;
-      gs.units.push(hero);
-      playHeroFanfare();
-      gs.heroMsg = { timer: 3500 };
-      gs.effects.push({type:'msg', x:CW/2, y:CH/2-40, timer:2200, text:'助けに来た！', color:'#ffe066', size:30});
-    }
-  }
-
-  // 勇者: Wave4 のみ、1分30秒後に1回だけ出現 (空から落下)
-  if (!gs.heroSpawned && gs.wave === 4 && gs.waveTime >= 90000) {
-    gs.heroSpawned = true;
-    const hero = makeUnit('hero', 'ally', 110); // 味方の城・リスポーン地点付近に降臨
-    hero.landingY = -hero.spriteH * S * 1.5;
-    hero.landingTarget = GROUND;
-    hero.landingSpeed = 0.6;
-    gs.units.push(hero);
-    playHeroFanfare();
-    gs.heroMsg = { timer: 3500 };
-    // Wave4: 勇者誕生BGM（1回再生）→ 終わったら魔王戦BGMに戻る
-    playBGM('hero', { fadeMs: 1200, loop: false, onEnd: () => {
-      if (gs.state === 'playing' && gs.wave === 4) playBGM('demon', { fadeMs: 1500 });
-    }});
-  }
-}
-
-function updateHeroLanding(dt) {
-  for (const u of gs.units) {
-    if (u.isHero && u.landingY !== undefined) {
-      u.landingY += u.landingSpeed * dt;
-      if (u.landingY >= u.landingTarget) {
-        // 着地！降臨地点（味方の城付近）でそのまま着地
-        const hx = u.x;
-        delete u.landingY;
-        delete u.landingTarget;
-        delete u.landingSpeed;
-        // 着地爆発エフェクト（大爆発）
-        gs.effects.push({type:'explosion', x:hx, y:GROUND, timer:1800, maxT:1800, r:340, color:'#ffe066', color2:'#ffd700'});
-        gs.effects.push({type:'explosion', x:hx, y:GROUND, timer:1400, maxT:1400, r:240, color:'#ffffff', color2:'#fff0a0'});
-        gs.effects.push({type:'explosion', x:hx, y:GROUND, timer:1000, maxT:1000, r:150, color:'#ffe066', color2:'#ff8800'});
-        for (let r=1; r<=6; r++) {
-          gs.effects.push({type:'shockwave', x:hx, y:GROUND, timer:600+r*100, maxT:600+r*100, r:r*60, color:'#ffd700'});
-        }
-        for (let i=0; i<20; i++) {
-          const angle = (i/20)*Math.PI*2;
-          const spd = 1.5 + Math.random()*2;
-          gs.effects.push({type:'ember', x:hx+Math.cos(angle)*20, y:GROUND-20, timer:1200, maxT:1200, color:'#ffd700', vx:Math.cos(angle)*spd, vy:-spd*1.5});
-        }
-        // ノックバック: 着地衝撃で前方の味方を少し押し出す
-        for (const a of gs.units) {
-          if (a.side === 'ally' && !a.isHero && a.x < hx + 120) {
-            a.x = Math.min(CW - 60, a.x + 50);
-            if (a.state === 'fight') { a.state = 'walk'; a.target = null; }
-          }
-        }
-      }
-    }
-  }
-}
-
-// 魔王 vs 神　衝突ノックバック
-const CLASH_COOLDOWN = 1200; // ms
-if (!window._clashCooldown) window._clashCooldown = 0;
-function updateBossClash(dt) {
-  window._clashCooldown = Math.max(0, window._clashCooldown - dt);
-  if (window._clashCooldown > 0) return;
-  const god = gs.boss && gs.boss.type === 'god' ? gs.boss : null;
-  const demon = gs.units.find(u => u.type === 'allydemon' && u.state !== 'dead' && u.risingY === undefined);
-  if (!god || !demon) return;
-  const dist = Math.abs(god.x - demon.x);
-  if (dist > 80) return;
-
-  // ノックバック：互いに押し合い、神は戦場内（370〜560）に収める
-  const kbGod   = god.x   < demon.x ? -30 : 30;
-  const kbDemon = demon.x < god.x   ? -50 : 50;
-  god.x   = Math.max(370, Math.min(560, god.x   + kbGod));
-  demon.x = Math.max(180, Math.min(560, demon.x + kbDemon));
-
-  // ダメージ：互角気味の死闘（魔王がやや押し勝つ）
-  god.hp   = Math.max(1, god.hp   - 120);
-  demon.hp = Math.max(1, demon.hp - 60);
-
-  // エフェクト
-  const mx = (god.x + demon.x) / 2;
-  gs.effects.push({type:'explosion', x:mx, y:GROUND-60, timer:600, maxT:600, r:120, color:'#ffffff', color2:'#ffaa00'});
-  gs.effects.push({type:'shockwave', x:mx, y:GROUND-30, timer:400, maxT:400, r:160, color:'#ffdd00'});
-  gs.effects.push({type:'msg', x:mx, y:GROUND-120, timer:700, text:'激突！', color:'#ffffff', size:28});
-
-  // 効果音（重い衝突音）
-  tone(80,  0.4, 'sawtooth', 0.12, 60);
-  tone(120, 0.3, 'square',   0.08, 80);
-  tone(200, 0.2, 'sine',     0.06, 40);
-
-  window._clashCooldown = CLASH_COOLDOWN;
-}
-
-function updateAllyDemonRising(dt) {
-  for (const u of gs.units) {
-    if (u.type === 'allydemon' && u.risingY !== undefined) {
-      // 暗黒の渦エフェクト（浮上中）
-      if (Math.random() < 0.4) {
-        const angle = Math.random() * Math.PI * 2;
-        const r = 20 + Math.random() * 40;
-        gs.effects.push({type:'darkVortex', x: u.x + Math.cos(angle)*r, y: u.risingY + Math.random()*30, timer:600, maxT:600});
-      }
-      u.risingY -= u.risingSpeed * dt;
-      if (u.risingY <= u.risingTarget) {
-        delete u.risingY;
-        delete u.risingTarget;
-        delete u.risingSpeed;
-        // 浮上完了：暗黒爆発＋「魔王爆誕！」
-        gs.effects.push({type:'explosion', x:u.x, y:GROUND, timer:1400, maxT:1400, r:300, color:'#550088', color2:'#220044'});
-        gs.effects.push({type:'explosion', x:u.x, y:GROUND, timer:900,  maxT:900,  r:190, color:'#8800cc', color2:'#440066'});
-        for (let r=1; r<=6; r++) {
-          gs.effects.push({type:'shockwave', x:u.x, y:GROUND, timer:400+r*120, maxT:400+r*120, r:r*60, color:'#aa00ff'});
-        }
-        gs.effects.push({type:'msg', x:CW/2, y:CH/2-30, timer:3000, text:'魔王爆誕！', color:'#cc66ff', size:40});
-        playDemonBirth();
-      }
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════
-// HUD
-// ═══════════════════════════════════════════════
-function updateBossBar() {
-  const wrap = document.getElementById('boss-bar-wrap');
-  const fill = document.getElementById('boss-bar-fill');
-  const nameEl = document.getElementById('boss-name');
-  const hpTxt = document.getElementById('boss-hp-txt');
-  if (gs.boss && gs.boss.state !== 'dead') {
-    wrap.style.display = 'block';
-    nameEl.style.display = 'inline';
-    hpTxt.style.display = 'inline';
-    nameEl.textContent = BOSS_DEFS[gs.wave-1].name;
-    const pct = Math.max(0, gs.boss.hp / gs.boss.maxHp * 100);
-    fill.style.width = pct + '%';
-    hpTxt.textContent = `${Math.max(0,gs.boss.hp)}/${gs.boss.maxHp}`;
-  } else {
-    wrap.style.display = 'none';
-    nameEl.style.display = 'none';
-    hpTxt.style.display = 'none';
-  }
-}
-
-function updateEnemyCastleHud() {
-  const hp = Math.max(0, gs.enemyCastleHP || 0);
-  const maxHp = gs.enemyCastleMaxHP || 1;
-  document.getElementById('enemyCastleHpNum').textContent = `${hp}/${maxHp}`;
-  const pct = hp / maxHp * 100;
-  document.getElementById('enemy-castle-bar-fill').style.width = pct + '%';
-  document.getElementById('enemy-castle-bar-fill').style.background =
-    pct > 50 ? 'linear-gradient(90deg,#cc1111,#ff6600)' :
-    pct > 25 ? 'linear-gradient(90deg,#880000,#cc3300)' :
-               'linear-gradient(90deg,#440000,#880000)';
-}
-
-function addScore(pts, x, y) {
-  gs.score += pts;
-  const s = gs.score.toLocaleString();
-  const big = document.getElementById('scoreBig');
-  if (big) {
-    big.textContent = s;
-    big.style.transform = 'scale(1.25)';
-    setTimeout(() => { big.style.transform = 'scale(1)'; }, 120);
-  }
-  if (x !== undefined) {
-    gs.effects.push({type:'msg', x, y: y ?? GROUND-55, timer:800, text:`+${pts}`, color:'#FFD700', size:20});
-  }
-}
-
-function updateHUD() {
-  const big = document.getElementById('scoreBig');
-  if (big) big.textContent = gs.score.toLocaleString();
-  const sec = Math.floor(gs.waveTime/1000);
-  document.getElementById('timerNum').textContent = `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
-  document.getElementById('waveNum').textContent = gs.wave;
-  updateBossBar();
-  updateEnemyCastleHud();
-}
-
-// ═══════════════════════════════════════════════
-// DRAWING
-// ═══════════════════════════════════════════════
-function drawBackground() {
-  const sky = ctx.createLinearGradient(0,0,0,GROUND);
-  sky.addColorStop(0,'#06061e'); sky.addColorStop(1,'#141840');
-  ctx.fillStyle = sky; ctx.fillRect(0,0,CW,GROUND);
-  ctx.fillStyle = '#ffffffbb';
-  [[52,18],[148,12],[302,34],[452,9],[598,27],[702,14],[204,48],[552,44],[752,28],[404,19],[102,38],[650,8]].forEach(([x,y])=>ctx.fillRect(x,y,2,2));
-  ctx.fillStyle = '#0e1d38';
-  for (let mx=0; mx<CW; mx+=90) {
-    const mh = 35+Math.sin(mx*0.06)*14;
-    ctx.beginPath(); ctx.moveTo(mx,GROUND); ctx.lineTo(mx+45,GROUND-mh); ctx.lineTo(mx+90,GROUND); ctx.fill();
-  }
-  ctx.fillStyle = '#3a7a22'; ctx.fillRect(0,GROUND,CW,3);
-  ctx.fillStyle = '#2d5a1b'; ctx.fillRect(0,GROUND+3,CW,17);
-  ctx.fillStyle = '#1a3a0e'; ctx.fillRect(0,GROUND+20,CW,CH-GROUND-20);
-}
-
-function drawPlayerCastle() {
-  ctx.save();
-  const x=0, cTop=145;
-  ctx.fillStyle = '#8899aa'; ctx.fillRect(x,cTop,65,GROUND-cTop);
-  ctx.fillStyle = '#667788';
-  for (let by=cTop; by<GROUND; by+=14)
-    for (let bx=x; bx<x+65; bx+=20)
-      ctx.fillRect(bx+(by%28<14?0:10), by, 18, 12);
-  ctx.fillStyle = '#99aabb'; ctx.fillRect(x,cTop-34,26,34);
-  ctx.fillStyle = '#667788'; ctx.fillRect(x,cTop-34,8,11); ctx.fillRect(x+18,cTop-34,8,11);
-  ctx.fillStyle = '#99aabb'; ctx.fillRect(x+40,cTop-22,25,22);
-  ctx.fillStyle = '#667788'; ctx.fillRect(x+40,cTop-22,8,11); ctx.fillRect(x+57,cTop-22,8,11);
-  ctx.fillStyle = '#2266dd'; ctx.fillRect(x+9,cTop-56,3,24);
-  ctx.fillStyle = '#5599ff'; ctx.fillRect(x+12,cTop-56,16,11);
-  ctx.fillStyle = '#1a2a3a'; ctx.fillRect(x+22,GROUND-32,20,32);
-  ctx.fillStyle = '#334455'; ctx.fillRect(x+24,GROUND-30,16,4); ctx.fillRect(x+24,GROUND-22,16,4);
-  ctx.restore();
-}
-
-function drawEnemyCastle() {
-  ctx.save();
-  const x=736, cTop=128;
-  ctx.fillStyle = '#2a1a2e'; ctx.fillRect(x,cTop,64,GROUND-cTop);
-  ctx.fillStyle = '#1a0a1e';
-  for (let by=cTop; by<GROUND; by+=14)
-    for (let bx=x; bx<x+64; bx+=20)
-      ctx.fillRect(bx+(by%28<14?0:10), by, 18, 12);
-  ctx.fillStyle = '#3a1a3e'; ctx.fillRect(x+20,cTop-54,24,54);
-  ctx.fillStyle = '#2a0a2e'; ctx.fillRect(x+20,cTop-54,8,12); ctx.fillRect(x+36,cTop-54,8,12);
-  ctx.fillStyle = '#33153a';
-  ctx.fillRect(x,cTop-28,20,28); ctx.fillRect(x+44,cTop-28,20,28);
-  ctx.fillStyle = '#220a26';
-  ctx.fillRect(x,cTop-28,7,12); ctx.fillRect(x+13,cTop-28,7,12);
-  ctx.fillRect(x+44,cTop-28,7,12); ctx.fillRect(x+57,cTop-28,7,12);
-  ctx.fillStyle = '#440000'; ctx.fillRect(x+30,cTop-74,3,24);
-  ctx.fillStyle = '#cc1111'; ctx.fillRect(x+33,cTop-74,16,11);
-  ctx.fillStyle = '#0a0010'; ctx.fillRect(x+22,GROUND-34,20,34);
-  ctx.fillStyle = '#ff9900'; ctx.fillRect(x+14,GROUND-54,5,5); ctx.fillRect(x+45,GROUND-54,5,5);
-  ctx.fillStyle = '#ffee44'; ctx.fillRect(x+15,GROUND-55,3,2); ctx.fillRect(x+46,GROUND-55,3,2);
-  ctx.restore();
-}
-
-const BS = S * 2; // boss scale: 2x per axis = 4x area vs soldier
-
-function drawSpriteBoss(ctx, pixels, ox, oy, flipX=false) {
-  const rows=pixels.length, cols=pixels[0].length;
-  ctx.save();
-  ctx.translate(ox, oy);
-  if (flipX) { ctx.translate(cols*BS, 0); ctx.scale(-1,1); }
-  for (let r=0; r<rows; r++)
-    for (let c=0; c<cols; c++) {
-      const col=pixels[r][c];
-      if (col) { ctx.fillStyle=col; ctx.fillRect(c*BS, r*BS, BS, BS); }
-    }
-  ctx.restore();
-}
-
-function drawUnit(u) {
-  // 勇者の突進モーション（攻撃時に前方へthrust）
-  let _lungeOrig = null;
-  if (u.isHero && u.lungeT > 0) {
-    const p = 1 - u.lungeT / 260;
-    const off = Math.sin(p * Math.PI) * 28 * (u.side === 'enemy' ? -1 : 1);
-    _lungeOrig = u.x;
-    u.x = u.x + off;
-  }
-  try {
-    drawUnitInner(u);
-  } finally {
-    if (_lungeOrig !== null) u.x = _lungeOrig;
-  }
-}
-function drawUnitInner(u) {
-  // Image sprite (PNG) — try first
-  if (imagesReady) {
-    let imgDef = IMAGE_DEFS[u.type];
-    // ゴブリン/ホブゴブリンのPNGは「味方ゴブリン」または「Wave4の敵」だけ。
-    // Wave1-3・Wave5の敵ゴブリンはピクセルアートを使う。
-    if ((u.type === 'goblin' || u.type === 'hobgoblin') &&
-        !(u.side === 'ally' || gs.wave === 4)) {
-      imgDef = null;
-    }
-    if (imgDef) {
-      const frameIdx = u.animFrame % imgDef.frames.length;
-      let img = loadedImages[imgDef.frames[frameIdx]];
-      // 被弾モーション：hit画像があり読み込めていればそちらを使う
-      if ((u.hitT || 0) > 0 && imgDef.hit) {
-        const hitImg = loadedImages[imgDef.hit];
-        if (hitImg && hitImg.complete && hitImg.naturalWidth) img = hitImg;
-      }
-      if (drawImageUnit(u, img, imgDef.drawH, imgDef.yOff)) return;
-    }
-  }
-  // Fallback: pixel art
-  let sprites;
-  if (u.isBoss) {
-    sprites = getBossSprites(u.type);
-  } else {
-    sprites = {
-      soldier:   [SPRITE_SOLDIER,   SPRITE_SOLDIER2],
-      archer:    [SPRITE_ARCHER,    SPRITE_ARCHER2],
-      hero:      [SPRITE_HERO,      SPRITE_HERO2],
-      allydemon: [SPRITE_DEMON,     SPRITE_DEMON],
-      goblin:    [SPRITE_GOBLIN,    SPRITE_GOBLIN2],
-      hobgoblin: [SPRITE_HOBGOBLIN, SPRITE_HOBGOBLIN2],
-    }[u.type];
-  }
-  if (!sprites) return;
-  const sprite = sprites[u.animFrame % 2];
-
-  if (u.isBoss || u.isBossScale) {
-    const sw = u.spriteW * BS, sh = u.spriteH * BS;
-    const groundY = u.risingY !== undefined ? u.risingY : GROUND;
-    const ox = Math.round(u.x - sw/2), oy = groundY - sh;
-    // 浮上中はクリップして地面以下を隠す
-    if (u.risingY !== undefined) {
-      ctx.save();
-      ctx.beginPath(); ctx.rect(0, 0, CW, GROUND); ctx.clip();
-    }
-    drawSpriteBoss(ctx, sprite, ox, oy, u.side === 'enemy');
-    if (u.risingY !== undefined) ctx.restore();
-    if (u.hp < u.maxHp) {
-      const pct = Math.max(0, u.hp / u.maxHp);
-      ctx.fillStyle = '#0008'; ctx.fillRect(ox-1, oy-10, sw+2, 7);
-      ctx.fillStyle = pct>0.5?'#4dff6e':pct>0.25?'#ffcc00':'#ff4136';
-      ctx.fillRect(ox, oy-9, Math.round(sw*pct), 5);
-    }
-  } else {
-    const ds = u.drawScale || 1;
-    const sw = Math.round(u.spriteW * S * ds), sh = Math.round(u.spriteH * S * ds);
-    const drawY = u.landingY !== undefined ? u.landingY : GROUND;
-    const ox = Math.round(u.x - sw/2), oy = drawY - sh;
-    ctx.save();
-    ctx.translate(ox + sw/2, drawY);
-    if (u.side === 'enemy') ctx.scale(-ds, ds); else ctx.scale(ds, ds);
-    ctx.translate(-u.spriteW*S/2, -u.spriteH*S);
-    drawSprite(ctx, sprite, 0, 0, false);
-    ctx.restore();
-    if (u.hp < u.maxHp) {
-      const pct = Math.max(0, u.hp / u.maxHp);
-      ctx.fillStyle = '#0008'; ctx.fillRect(ox-1, oy-8, sw+2, 5);
-      ctx.fillStyle = pct>0.5?'#4dff6e':pct>0.25?'#ffcc00':'#ff4136';
-      ctx.fillRect(ox, oy-7, Math.round(sw*pct), 3);
-    }
-    // 勇者の着地前: 後光エフェクト
-    if (u.isHero && u.landingY !== undefined) {
-      const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 80);
-      ctx.save();
-      ctx.globalAlpha = 0.35 * pulse;
-      const grad = ctx.createRadialGradient(u.x, drawY, 0, u.x, drawY, 60);
-      grad.addColorStop(0, '#fff7aa'); grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(u.x, drawY, 60, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-  }
-}
-
-function drawEffects() {
-  ctx.save();
-  ctx.textAlign = 'center';
-  for (const e of gs.effects) {
-    const a = Math.min(1, e.timer / 300);
-    ctx.globalAlpha = Math.max(0, a);
-    if (e.type === 'slash') {
-      const age = 1 - e.timer / 280;
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, 1 - age * 1.5);
-      const dx = e.side === 'ally' ? -1 : 1;
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
-      ctx.shadowColor = '#88ccff'; ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.moveTo(e.x + dx*18 - age*10, e.y - 20 + age*5);
-      ctx.lineTo(e.x - dx*18 + age*10, e.y + 14 - age*5);
-      ctx.stroke();
-      ctx.strokeStyle = '#aaddff'; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(e.x + dx*14 - age*8, e.y - 14 + age*4);
-      ctx.lineTo(e.x - dx*14 + age*8, e.y + 10 - age*4);
-      ctx.stroke();
-      ctx.shadowBlur = 0; ctx.restore();
-    } else if (e.type === 'spell') {
-      const pct = 1 - e.timer / e.maxT;
-      const sx = e.x1 + (e.x2 - e.x1) * pct;
-      const sy = e.y1 + (e.y2 - e.y1) * pct - Math.sin(pct * Math.PI) * 20;
-      ctx.save();
-      ctx.shadowColor = '#aa44ff'; ctx.shadowBlur = 10;
-      ctx.fillStyle = '#cc88ff'; ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(sx-2, sy-2, 3, 0, Math.PI*2); ctx.fill();
-      ctx.shadowBlur = 0; ctx.restore();
-    } else if (e.type === 'shockwave') {
-      const pct = 1 - e.timer / e.maxT;
-      const radius = e.r * (0.3 + pct * 0.7);
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, 0.8 - pct);
-      ctx.strokeStyle = e.color || '#ffdd99'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(e.x, e.y, radius, 0, Math.PI*2); ctx.stroke();
-      ctx.restore();
-    } else if (e.type === 'explosion') {
-      const pct = 1 - e.timer / e.maxT;
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, 0.85 - pct * 1.2);
-      const grad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * (0.3 + pct * 0.7));
-      grad.addColorStop(0, e.color || '#ff8800');
-      grad.addColorStop(0.5, e.color2 || '#cc1100');
-      grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * (0.3 + pct * 0.7), 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    } else if (e.type === 'ember') {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, e.timer / 700);
-      ctx.fillStyle = e.color || '#ff6600';
-      ctx.beginPath(); ctx.arc(e.x, e.y - (700 - e.timer) * 0.05, 3, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    } else if (e.type === 'divinebeam') {
-      const pct = e.timer / e.maxT;
-      ctx.save();
-      ctx.globalAlpha = pct * 0.9;
-      const grad = ctx.createLinearGradient(e.x1, 0, e.x2, GROUND);
-      grad.addColorStop(0, '#ffffee'); grad.addColorStop(1, '#ffcc00');
-      ctx.fillStyle = grad;
-      ctx.fillRect(Math.min(e.x1,e.x2)-8, 0, 16, GROUND);
-      ctx.fillStyle = 'rgba(255,255,200,0.3)';
-      ctx.fillRect(0, 0, CW, GROUND);
-      ctx.restore();
-    } else if (e.type === 'hit') {
-      ctx.fillStyle = '#ffee44'; ctx.font = 'bold 13px monospace';
-      ctx.fillText('★', e.x, e.y - (380 - Math.max(0,e.timer)) * 0.04);
-    } else if (e.type === 'arrow') {
-      const pct = 1 - e.timer / e.maxT;
-      const ax = e.x1 + (e.x2 - e.x1) * pct;
-      const ay = e.y1 + (e.y2 - e.y1) * pct;
-      const angle = Math.atan2(e.y2 - e.y1, e.x2 - e.x1);
-      ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle);
-      ctx.fillStyle = '#cc8833'; ctx.fillRect(-5,-1,10,2);
-      ctx.fillStyle = '#888';   ctx.fillRect(4,-2,4,4);
-      ctx.restore();
-    } else if (e.type === 'blob') {
-      const pct = 1 - e.timer / e.maxT;
-      const bx = e.x + (e.tx - e.x) * pct;
-      const by = e.y + Math.sin(pct * Math.PI) * -30;
-      ctx.fillStyle = '#88ff55'; ctx.beginPath();
-      ctx.arc(bx, by, 7, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#55cc33'; ctx.beginPath();
-      ctx.arc(bx-3, by-3, 4, 0, Math.PI*2); ctx.fill();
-    } else if (e.type === 'bolt') {
-      const pct = 1 - e.timer / e.maxT;
-      const bx = e.x + (e.tx - e.x) * pct;
-      const by = e.y;
-      ctx.fillStyle = '#cc88ff'; ctx.beginPath();
-      ctx.arc(bx, by, 6, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#ffffff'; ctx.beginPath();
-      ctx.arc(bx, by, 3, 0, Math.PI*2); ctx.fill();
-    } else if (e.type === 'beam') {
-      ctx.globalAlpha = Math.max(0, e.timer / e.maxT) * 0.9;
-      ctx.strokeStyle = '#ffffaa'; ctx.lineWidth = 6;
-      ctx.shadowColor = '#ffdd00'; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-      ctx.shadowBlur = 0; ctx.lineWidth = 1;
-    } else if (e.type === 'flame') {
-      ctx.globalAlpha = (e.timer / 900) * 0.55;
-      const grad = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r);
-      grad.addColorStop(0, '#ff8800'); grad.addColorStop(0.5, '#cc1100'); grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill();
-    } else if (e.type === 'bark' || e.type === 'msg' || e.type === 'word') {
-      const sz = e.size || 15;
-      const yy = e.y - (800 - Math.max(0,e.timer)) * 0.02;
-      ctx.save();
-      ctx.font = `bold ${sz}px sans-serif`;
-      if (e.size) {
-        // 大きいテロップは中央寄せ＋縁取りで目立たせる
-        ctx.textAlign = 'center';
-        ctx.lineWidth = Math.max(3, sz * 0.14);
-        ctx.strokeStyle = '#000';
-        ctx.strokeText(e.text, e.x, yy);
-      }
-      ctx.fillStyle = e.color || '#FFD700';
-      ctx.fillText(e.text, e.x, yy);
-      ctx.restore();
-    } else if (e.type === 'spawn') {
-      ctx.fillStyle = e.color || '#4dff6e'; ctx.font = '11px monospace';
-      ctx.fillText('▲', e.x, e.y);
-    } else if (e.type === 'diagBeam') {
-      const pct = e.timer / e.maxT;
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, pct * 1.4);
-      ctx.shadowColor = '#ffee00'; ctx.shadowBlur = 22;
-      ctx.strokeStyle = '#ffffee'; ctx.lineWidth = 10 * pct;
-      ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-      ctx.shadowBlur = 8;
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4 * pct;
-      ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-      ctx.shadowBlur = 0; ctx.restore();
-    } else if (e.type === 'divineParticle') {
-      const pct = e.timer / e.maxT;
-      ctx.save();
-      ctx.globalAlpha = pct;
-      const gr = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 8*pct);
-      gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.4, '#ffee88'); gr.addColorStop(1, 'transparent');
-      ctx.fillStyle = gr;
-      ctx.beginPath(); ctx.arc(e.x, e.y, 8*pct, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    } else if (e.type === 'darkVortex') {
-      const pct = e.timer / e.maxT;
-      ctx.save();
-      ctx.globalAlpha = pct * 0.7;
-      const gr = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, 14 * pct);
-      gr.addColorStop(0, '#aa00ff'); gr.addColorStop(0.5, '#550088'); gr.addColorStop(1, 'transparent');
-      ctx.fillStyle = gr;
-      ctx.beginPath(); ctx.arc(e.x, e.y, 14 * pct, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-  }
-  ctx.globalAlpha = 1;
-
-  if (gs.waveMsg && gs.waveMsg.timer > 0) {
-    const a = Math.min(1, gs.waveMsg.timer / 500);
-    ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, CH/2-48, CW, 76);
-    ctx.fillStyle = gs.waveMsg.color || '#FFD700';
-    ctx.font = 'bold 36px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(gs.waveMsg.text, CW/2, CH/2+12);
-    ctx.globalAlpha = 1;
-  }
-
-  // 勇者登場テキスト（超巨大・中央・目立つ）
-  if (gs.heroMsg && gs.heroMsg.timer > 0) {
-    const t = gs.heroMsg.timer;
-    const a = t > 2800 ? Math.min(1,(3500-t)/300) : t > 500 ? 1 : t/500;
-    const shake = t > 3000 ? 0 : (Math.random()-0.5)*4;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, a);
-    // 背景帯
-    ctx.fillStyle = 'rgba(0,0,0,0.75)';
-    ctx.fillRect(0, CH/2-80, CW, 120);
-    // 外縁グロー
-    ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 30;
-    ctx.fillStyle = '#ffd700';
-    ctx.font = `bold 62px monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText('勇者が現れた！', CW/2 + shake, CH/2 + 20 + shake);
-    ctx.shadowBlur = 0;
-    // 白縁
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.strokeText('勇者が現れた！', CW/2 + shake, CH/2 + 20 + shake);
-    ctx.restore();
-  }
-
-  if (gs.waitingForEnter) {
-    const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 300);
-    ctx.globalAlpha = pulse;
-    ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(0, CH/2-30, CW, 60);
-    ctx.fillStyle = '#FFD700'; ctx.font = 'bold 22px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(`WAVE ${gs.wave} クリア！  ─  Enter で次のWaveへ`, CW/2, CH/2+8);
-    ctx.globalAlpha = 1;
-  }
-
-  ctx.restore();
-}
-
-function draw() {
-  ctx.clearRect(0,0,CW,CH);
-  drawBackground();
-  drawPlayerCastle();
-  drawEnemyCastle();
-  for (const u of gs.units.filter(u=>u.side==='enemy')) drawUnit(u);
-  if (gs.boss && gs.boss.state !== 'dead') drawUnit(gs.boss);
-  // 味方を描画。勇者は兵士に隠れないよう最前面（最後）に描く
-  const allies = gs.units.filter(u=>u.side==='ally');
-  for (const u of allies.filter(u=>!u.isHero)) drawUnit(u);
-  for (const u of allies.filter(u=>u.isHero)) drawUnit(u);
-  drawEffects();
-}
-
-// ═══════════════════════════════════════════════
-// GAME LOOP
-// ═══════════════════════════════════════════════
-function gameLoop(ts) {
-  if (gs.state !== 'playing' && gs.state !== 'waveclear') return;
-  const dt = Math.min(ts - gs.lastFrame, 50);
-  gs.lastFrame = ts;
-
-  if (gs.state === 'playing') {
-    gs.time += dt;
-    gs.waveTime += dt;
-    spawnEnemies(dt);
-    updateUnits(dt);
-    updateHeroLanding(dt);
-    updateAllyDemonRising(dt);
-    updateBossClash(dt);
-    updateEffects(dt);
-  } else {
-    updateEffects(dt);
-  }
-
-  updateHUD();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
-
-// ═══════════════════════════════════════════════
-// RANKING SYSTEM
-// ═══════════════════════════════════════════════
-function loadRanking() {
-  try { return JSON.parse(localStorage.getItem('soldiertypingRanking') || '[]'); } catch { return []; }
-}
-function saveRanking(entries) {
-  try { localStorage.setItem('soldiertypingRanking', JSON.stringify(entries)); } catch {}
-}
-function addToRanking(name, score, wave) {
-  const entries = loadRanking();
-  entries.push({name, score, wave, date: new Date().toLocaleDateString('ja-JP')});
-  entries.sort((a,b) => b.score - a.score);
-  saveRanking(entries.slice(0, 20));
-}
-function buildRankingHTML(myScore) {
-  const all = loadRanking().slice(0, 5);
-  if (all.length === 0) return '<p style="color:#556;font-size:12px;margin:6px 0;">まだスコアなし（ランキングページで確認できます）</p>';
-  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;">
-<tr style="color:#aaa;border-bottom:1px solid #333;"><th style="text-align:left;padding:3px 6px;">#</th><th style="text-align:left;padding:3px 6px;">名前</th><th style="text-align:right;padding:3px 6px;">スコア</th><th style="text-align:right;padding:3px 6px;">Wave</th></tr>`;
-  all.forEach((e, i) => {
-    const isMe = e.score === myScore;
-    const color = i===0 ? '#FFD700' : i===1 ? '#C0C0C0' : i===2 ? '#CD7F32' : isMe ? '#4dff6e' : '#ccc';
-    const bg = isMe ? 'background:#1a3a1a;' : '';
-    html += `<tr style="${bg}color:${color};">
-<td style="padding:3px 6px;">${i+1}.</td>
-<td style="padding:3px 6px;">${e.name}${isMe?' ◀ あなた':''}</td>
-<td style="text-align:right;padding:3px 6px;">${e.score.toLocaleString()}</td>
-<td style="text-align:right;padding:3px 6px;">Wave ${e.wave}</td></tr>`;
-  });
-  html += '</table>';
-  return html;
-}
-
-function getPlayerName() {
-  return localStorage.getItem('soldiertypingName') || '';
-}
-function setPlayerName(n) {
-  localStorage.setItem('soldiertypingName', n);
-}
-
-// ═══════════════════════════════════════════════
-// START / END
-// ═══════════════════════════════════════════════
-function startGame(fromWave=1) {
-  getAC();
-  // 名前を保存
-  const nameInput = document.getElementById('playerNameInput');
-  if (nameInput) {
-    const n = nameInput.value.trim();
-    if (n) setPlayerName(n);
-  }
-  nextId = 0;
-  gs = {
-    state:'playing', time:0, waveTime:0, wave:fromWave, score:0,
-    units:[], boss:null, bossSpawned:false,
-    effects:[], spawnCount:0,
-    goblinTimer:-3000, hobTimer:0,
-    waveMsg:null, lastFrame:0,
-    currentWord:null, inputValue:'', recentWords:[],
-    enemyCastleHP: enemyCastleMaxHPForWave(fromWave),
-    enemyCastleMaxHP: enemyCastleMaxHPForWave(fromWave),
-    waitingForEnter: false, heroSpawned: false, allyDemonSpawned: false, heroMsg: null,
-    combo: 0, missCount: 0,
-  };
-  updateComboDisp();
-  document.getElementById('overlay').style.display = 'none';
-  document.getElementById('boss-bar-wrap').style.display = 'none';
-  document.getElementById('boss-name').style.display = 'none';
-  document.getElementById('boss-hp-txt').style.display = 'none';
-  updateHUD();
-  nextWord();
-  document.getElementById('type-input').focus();
-  // BGM: Wave1 専用曲、それ以外は通常曲から
-  playBGM(fromWave === 1 ? 'wave1' : 'normal', { fadeMs: 1500 });
-  requestAnimationFrame(ts => { gs.lastFrame = ts; requestAnimationFrame(gameLoop); });
-}
-
-function endGame(result) {
-  gs.state = result;
-  gs.combo = 0;
-  updateComboDisp();
-  stopBGM(1500);
-  const ov = document.getElementById('overlay');
-  ov.style.display = 'flex';
-
-  const playerName = getPlayerName() || 'プレイヤー';
-
-  if (result === 'win') {
-    const total = gs.score + 10000;
-    addToRanking(playerName, total, 5);
-    if (window._submitScore) window._submitScore(playerName, total, 5);
-    const tweetText = encodeURIComponent(`【ソルジャータイピング】全Wave制覇！スコア: ${total.toLocaleString()}点 ⚔️✨ #ソルジャータイピング #タイピングゲーム`);
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
-    ov.innerHTML = `
-<h1 style="color:#FFD700;font-size:28px;">🎉 VICTORY! 🎉</h1>
-<p class="sub">神を倒し、世界に平和が戻った！</p>
-<div id="result-score">${total.toLocaleString()} pt</div>
-<p class="sub" style="color:#aaa">撃破: ${gs.score.toLocaleString()} ＋ 勝利ボーナス: 10,000</p>
-<p class="sub">Wave: 5 クリア！ Time: ${Math.floor(gs.time/60000)}:${String(Math.floor(gs.time/1000)%60).padStart(2,'0')}　ミスタイプ: ${gs.missCount || 0} 回</p>
-<div style="margin:6px 0 2px;font-size:12px;color:#FFD700;letter-spacing:1px;">― RANKING ―</div>
-${buildRankingHTML(total)}
-<a href="${tweetUrl}" target="_blank" rel="noopener"
-  style="display:inline-block;margin:8px 4px 0;padding:10px 22px;background:#1DA1F2;color:#fff;font-size:14px;font-weight:bold;border-radius:8px;text-decoration:none;cursor:pointer;">
-  𝕏 スコアを自慢する
-</a>
-<button class="big-btn" style="margin:8px 0 0;" onclick="startGame()">もう一度！</button>`;
-  } else {
-    const retryWave = gs.wave;
-    addToRanking(playerName, gs.score, gs.wave);
-    if (window._submitScore) window._submitScore(playerName, gs.score, gs.wave);
-    const tweetText = encodeURIComponent(`【ソルジャータイピング】Wave${gs.wave}まで到達！スコア: ${gs.score.toLocaleString()}点 ⚔️ #ソルジャータイピング #タイピングゲーム`);
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
-    ov.innerHTML = `
-<h1 style="color:#ff4136">💀 GAME OVER 💀</h1>
-<p class="sub">ボスが城に到達した…</p>
-<div id="result-score">${gs.score.toLocaleString()} pt</div>
-<p class="sub">到達Wave: ${gs.wave}　ミスタイプ: ${gs.missCount || 0} 回</p>
-<div style="margin:6px 0 2px;font-size:12px;color:#FFD700;letter-spacing:1px;">― RANKING ―</div>
-${buildRankingHTML(gs.score)}
-<a href="${tweetUrl}" target="_blank" rel="noopener"
-  style="display:inline-block;margin:8px 4px 0;padding:10px 22px;background:#1DA1F2;color:#fff;font-size:14px;font-weight:bold;border-radius:8px;text-decoration:none;cursor:pointer;">
-  𝕏 スコアを自慢する
-</a>
-<button class="big-btn" style="margin:8px 4px 0;" onclick="startGame(${retryWave})">Wave ${retryWave} からリトライ</button>
-<button class="big-btn" style="margin-top:6px;background:#888;font-size:13px;" onclick="startGame(1)">Wave 1 からやり直す</button>`;
-  }
-}
-
-// ═══════════════════════════════════════════════
-// TITLE DRAW
-// ═══════════════════════════════════════════════
-(function init() {
-  ctx.fillStyle = '#06061e'; ctx.fillRect(0,0,CW,CH);
-  ctx.fillStyle = '#2d5a1b'; ctx.fillRect(0,GROUND,CW,20);
-  ctx.fillStyle = '#1a3a0e'; ctx.fillRect(0,GROUND+20,CW,CH-GROUND-20);
-  // Title: draw pixel art now, replace with images after load
-  drawSprite(ctx, SPRITE_SOLDIER, 80,  GROUND-54);
-  drawSprite(ctx, SPRITE_ARCHER2, 130, GROUND-54);
-  drawSprite(ctx, SPRITE_GOBLIN,  580, GROUND-42, true);
-  drawSprite(ctx, SPRITE_HOBGOBLIN, 622, GROUND-54, true);
-  drawSprite(ctx, SPRITE_DEMON,   680, GROUND-54, true);
-  // Preload images in background
-  preloadImages(null);
-  // 保存済みの名前を入力欄に反映
-  const savedName = getPlayerName();
-  if (savedName) { const el = document.getElementById('playerNameInput'); if (el) el.value = savedName; }
-  // 音声設定パネルを初期同期
-  syncAudioPanel();
-  // URLパラメータ ?wave=N で自動スタート（テスト用）
-  const _waveParam = parseInt(new URLSearchParams(location.search).get('wave'));
-  if (_waveParam >= 1 && _waveParam <= 5) {
-    setTimeout(() => startGame(_waveParam), 300);
-  }
+(function init(){
+  setBossVisual();
+  updateHud(); updateOrb();
+  $('nameIn').value = profile.name || '';
+  $('ovTodayBoss').textContent = '本日の神格：' + TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
+  if (daily.cleared && !DEBUG) showLocked();
+  else showOverlay('ovTitle');
 })();
 </script>
 </body>

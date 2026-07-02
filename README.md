@@ -1,24 +1,48 @@
-# Typingsoldier2
+# Typingsoldier2 — タイピング神話討伐（1分レイド）
 
-日本語タイピング × リアルタイム攻城ゲーム **「ソルジャータイピング」** をベースに、
-お城・ボス・エフェクトをクトゥルフ神話テイストへ刷新していくプロジェクト。
+**60秒のタイピングで「今日の神格」を討伐する**デイリーゲーム。
+1打ごとにダメージ、コンボで火力が上がる。討伐したら今日はクリア——また明日、新たな神格が現れる。
 
-## 現状（素材取り込み済み）
+## 遊び方
 
-このリポジトリには2つのソースから素材を取り込んでいる。
+```sh
+python3 -m http.server 8000   # http://localhost:8000 を開く
+```
 
-### ① ゲーム本体（[Bubble-Wars](https://github.com/BubblegumGameBoy/Bubble-Wars) から）
+- なまえを入れて「挑戦する」（Enterでも開始）
+- 表示されるひらがなをローマ字で打つ（IME不要・変換中でも打てる）
+- 60秒で総ダメージを競う。ボスHP(討伐ライン)を削り切れば **討伐！**（ボーナス+2,000、残り時間はオーバーキル加算）
+- 討伐した日はロック。翌日（JST 0時）に新しいボスと新しいお題が来る
+- `?debug` を付けると15秒・低HPのデバッグモード
+
+設計の詳細（バランスノブ・データ構造・意図）は **[DESIGN.md](DESIGN.md)** を参照。
+
+## ファイル構成
 
 | パス | 役割 |
 |------|------|
-| `index.html` | ゲーム本体（HTML/CSS/JSすべて内包、約2700行）。これ1つで動く。 |
-| `typing-engine.js` | ローマ字入力エンジン（かな→ローマ字変換テーブル等）。 |
-| `images/` | 現行のボス/ユニット画像（`*_boss.png`, `soldier_*`, `goblin_*`, `hero_*`, `lancer_*` など）。 |
+| `index.html` | **新ゲーム本体**（タイピング神話討伐。1ファイル完結） |
+| `typing-engine.js` | ローマ字入力エンジン（かな→ローマ字判定・IME回避。旧作から流用） |
+| `cthulhu-assets/` | クトゥルフ素材（ボス43体webp・ユニットpng・背景`bg.png`・`slash.mp3`） |
+| `DESIGN.md` | ゲーム設計書（コアループ／バランス／Firestore構造） |
+| `soldier-typing.html` | 旧作「ソルジャータイピング」（参考用にそのまま残置） |
+| `images/` `audio/` | 旧作の画像・BGM（旧作用） |
+| `ranking.html` | 旧作のランキング画面 |
+
+## 素材の出どころ
+
+### ① ゲーム基盤（[Bubble-Wars](https://github.com/BubblegumGameBoy/Bubble-Wars) から）
+
+| パス | 役割 |
+|------|------|
+| `soldier-typing.html` | 旧ゲーム本体（HTML/CSS/JSすべて内包、約2700行）。 |
+| `typing-engine.js` | ローマ字入力エンジン（新ゲームでも使用）。 |
+| `images/` | 旧作のボス/ユニット画像。 |
 | `audio/` | Wave別BGM・ボス戦BGM。 |
-| `ranking.html` | スコアランキング画面。 |
+| `ranking.html` | 旧作スコアランキング画面。 |
 | `robots.txt` | クローラ設定。 |
 
-**ゲーム構造の要点（`index.html` 内）:**
+**旧ゲーム構造の要点（`soldier-typing.html` 内）:**
 
 - 単語をローマ字入力 → 味方ユニット召喚 → 自動で敵城へ進軍して戦う
 - 全5 Wave、各Waveにボス。城壁到達で敵城HPを削り、ボス撃破 or 敵城破壊でWaveクリア
@@ -29,24 +53,17 @@
 
 ### ② クトゥルフ素材（[spacebar-clicker](https://github.com/BubblegumGameBoy/spacebar-clicker) から）
 
-刷新に使う原素材を `cthulhu-assets/` にまとめている。
+`cthulhu-assets/` に格納。新ゲームで使用中。
 
-| 種別 | ファイル | 用途（予定） |
-|------|----------|--------------|
-| ボス（webp 43体） | `boss_cthulhu` / `boss_nyarlathotep` / `boss_hastur` / `boss_tsathoggua` / `boss_shantak2` / `boss_migo` / `boss_deepone` / `boss_ghoul` / `boss_ghast` / `boss_gug` / `boss_nightgaunt` / `boss_moonbeast` / `boss_tindalos` / `boss_blackgoat` / `boss_glaaki` / `boss_chaugnar` / `boss_cthugha` … + 番号付き `boss01_rat`〜`boss11_*` | 各Waveのボスをクトゥルフ神格へ差し替え |
-| 味方ユニット（png 17種） | `unit_knight` / `paladin` / `mage` / `warlock` / `angel` / `dark` / `elf` / `dwarfb·w` / `dragonr·g·p` / `farmer` / `villager` / `heavy` / `sword` / `arch` | 召喚ユニットを画像ユニットへ差し替え |
-| 背景 | `bg.png` | お城・背景の刷新 |
-| SE | `slash.mp3` | 斬撃音 |
+| 種別 | ファイル | 用途 |
+|------|----------|------|
+| ボス（webp 43体） | `boss_cthulhu` / `boss_nyarlathotep` / `boss_hastur` ほか + 番号付き `boss01_rat`〜`boss11_*` | **日替わりボス**（43日でロスター1周） |
+| 味方ユニット（png 17種） | `unit_knight` / `paladin` / `mage` ほか | 未使用（将来の物量モード用に温存） |
+| 背景 | `bg.png` | 戦場の背景として使用中 |
+| SE | `slash.mp3` | 単語完成の斬撃音として使用中 |
 
-## 刷新方針（次ステップ）
+## 今後の候補
 
-- 味方ユニットを `unit_*` 画像に差し替え
-- 各Waveのボスをクトゥルフ神格（webp）に差し替え
-- お城・背景を `bg.png` 等で刷新
-- 撃破演出・必殺技などエフェクトを強化
-
-## 動作確認（ローカル）
-
-```sh
-python3 -m http.server 8000   # http://localhost:8000
-```
+- 物量モード（レイド形式を検討・DESIGN.md参照）
+- Firebase匿名認証によるロック強化
+- モバイル入力対応
