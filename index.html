@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, follow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タイピング神話討伐 — 1分レイド</title>
+<title>タイピング神話討伐 — 召喚レイド</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-17WNKDX3ZB"></script>
 <script>
@@ -34,18 +34,18 @@ body{
   filter:brightness(.75) saturate(.85); }
 
 /* ===== BOSS ===== */
-#boss{ position:absolute; left:50%; bottom:10%; transform:translateX(-50%);
-  height:56%; z-index:5; pointer-events:none; transform-origin:bottom center; }
-#boss img{ height:100%; width:auto; max-width:80vw; object-fit:contain; object-position:bottom;
+#boss{ position:absolute; left:44%; bottom:9%; transform:translateX(-50%);
+  height:52%; z-index:4; pointer-events:none; transform-origin:bottom center; }
+#boss img{ height:100%; width:auto; max-width:70vw; object-fit:contain; object-position:bottom;
   display:block; transform-origin:bottom center;
   filter:drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
-@keyframes bobFly{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2.5%);} }
-#boss img{ animation:bobFly 3.2s ease-in-out infinite; }
+#boss.flip img{ transform:scaleX(-1); }
+@keyframes bobFly{ 0%,100%{translate:0 0;} 50%{translate:0 -2.5%;} }
+#boss.fly img{ animation:bobFly 3.2s ease-in-out infinite; }
 #boss.hit img{ animation:shake .13s; filter:brightness(1.9) saturate(1.5) drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
-@keyframes shake{ 0%{transform:translate(0,0);}25%{transform:translate(-6px,2px);}50%{transform:translate(5px,-1px);}75%{transform:translate(-3px,1px);}100%{transform:translate(0,0);} }
-#boss.dead img{ animation:none; opacity:.28; filter:saturate(0) brightness(.5); transition:all .7s; }
-#boss.dying img{ animation:die .7s forwards; }
-@keyframes die{ to{ transform:translateY(6%) rotate(8deg) scale(.9); opacity:.28; filter:saturate(0) brightness(.5);} }
+@keyframes shake{ 0%{margin-left:0;}25%{margin-left:-6px;}50%{margin-left:5px;}75%{margin-left:-3px;}100%{margin-left:0;} }
+#boss.dying img{ animation:die .8s forwards; }
+@keyframes die{ to{ translate:0 6%; rotate:8deg; scale:.9; opacity:.2; filter:saturate(0) brightness(.45);} }
 
 /* ===== BOSS PLATE (orb + name) ===== */
 #bossPlate{ position:absolute; top:3.5%; left:50%; transform:translateX(-50%);
@@ -78,6 +78,31 @@ body{
 .bn-epi{ display:block; font-size:10px; font-weight:600; letter-spacing:.14em; color:#e6c674; text-shadow:0 1px 2px #000; }
 .bn-main{ display:block; font-size:clamp(15px,2.6vw,19px); font-weight:800; letter-spacing:.04em;
   color:#f0e6d2; text-shadow:0 1px 3px #000; }
+#battleTimer{ margin-top:4px; display:inline-block; font-size:13px; font-weight:700; color:#fff;
+  font-variant-numeric:tabular-nums; letter-spacing:.08em;
+  background:rgba(14,18,22,.75); border:1px solid var(--line); border-radius:7px; padding:2px 12px; }
+
+/* ===== UNITS (spacebar-clicker style) ===== */
+.unit-sprite{ position:absolute; z-index:6; transform-origin:bottom center;
+  animation:ubob 1.6s ease-in-out infinite; will-change:transform; pointer-events:none; }
+.unit-sprite img{ height:100%; width:auto; display:block; image-rendering:pixelated;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.55)); }
+.unit-sprite.faceL img{ transform:scaleX(-1); }
+@keyframes ubob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
+.unit-sprite.fly{ animation:floatFly 3.6s ease-in-out infinite; }
+@keyframes floatFly{ 0%{transform:translate(0,0);} 25%{transform:translate(-4px,-8px);}
+  50%{transform:translate(0,-15px);} 75%{transform:translate(4px,-7px);} 100%{transform:translate(0,0);} }
+.unit-sprite.attacking{ animation:lungeL .3s ease; }
+@keyframes lungeL{ 0%{transform:translateX(0);}40%{transform:translateX(-9px);}100%{transform:translateX(0);} }
+.unit-sprite.fly.attacking{ animation:floatFly 3.6s ease-in-out infinite; }
+.unit-sprite.fly.attacking img{ animation:rfire .3s ease; }
+@keyframes rfire{ 0%{transform:translateY(0);}40%{transform:translateY(-5px);}100%{transform:translateY(0);} }
+.unit-sprite.spawn{ animation:uspawn .45s ease; }
+@keyframes uspawn{ 0%{transform:translateY(14px) scale(.4); opacity:0;} 60%{transform:translateY(-6px) scale(1.12); opacity:1;} 100%{transform:translateY(0) scale(1);} }
+.proj{ position:absolute; z-index:7; font-size:17px; pointer-events:none; will-change:left,top;
+  transition:left .32s linear, top .32s linear; text-shadow:0 0 6px rgba(255,220,120,.8); }
+.summonToast{ position:absolute; z-index:9; font-size:12px; font-weight:700; color:#aef29b;
+  text-shadow:0 1px 3px #000; pointer-events:none; animation:flo .9s ease-out forwards; white-space:nowrap; }
 
 /* ===== HUD ===== */
 .hudBox{ position:absolute; z-index:10; background:rgba(14,18,22,.82);
@@ -89,26 +114,14 @@ body{
 .hudBox .k{ color:var(--sub); } .hudBox .v{ font-weight:700; }
 .vGold{ color:var(--gold); }
 
-/* ===== combo / damage pops ===== */
-#comboTag{ position:absolute; top:44%; left:16px; z-index:10; transform:translateY(-50%);
-  font-weight:800; font-size:clamp(18px,3.4vw,32px); color:#ffd24a; text-shadow:0 2px 6px #000;
-  opacity:0; transition:opacity .2s; }
-#comboTag.on{ opacity:1; }
-#comboTag small{ display:block; font-size:11px; color:var(--sub); font-weight:600; }
+/* damage pops */
 .dmg{ position:absolute; z-index:9; font-weight:800; pointer-events:none;
   text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.6); animation:flo .8s ease-out forwards; white-space:nowrap; }
 @keyframes flo{ 0%{transform:translate(-50%,0) scale(.6); opacity:0;}
   20%{transform:translate(-50%,-14px) scale(1.1); opacity:1;}
   100%{transform:translate(-50%,-56px) scale(1); opacity:0;} }
-.dmg.c{ color:#ffe14a; font-size:18px; }
-.dmg.w{ color:#ff9a3d; font-size:24px; }
-.clickfx{ position:absolute; z-index:8; pointer-events:none; width:90px; height:90px; }
-.clickfx::before{ content:""; position:absolute; inset:0; border-radius:50%;
-  border:4px solid transparent; border-top-color:#fff; border-right-color:#ffe96b;
-  filter:drop-shadow(0 0 6px rgba(255,235,120,.9));
-  animation:clkarc .22s ease-out forwards; }
-@keyframes clkarc{ 0%{opacity:0;transform:rotate(calc(var(--ang) - 120deg)) scale(.5);}
-  25%{opacity:1;} 100%{opacity:0;transform:rotate(calc(var(--ang) + 60deg)) scale(1.15);} }
+.dmg.c{ color:#ffe14a; font-size:15px; }
+.dmg.w{ color:#ff9a3d; font-size:22px; }
 
 /* ===== KILL BANNER ===== */
 #killBanner{ position:absolute; top:24%; left:50%; transform:translateX(-50%); z-index:20;
@@ -116,14 +129,6 @@ body{
   padding:10px 26px; text-align:center; pointer-events:none; opacity:0; transition:opacity .25s; }
 #killBanner.on{ opacity:1; }
 #killBanner .kb-title{ font-size:clamp(20px,4vw,30px); font-weight:900; color:#ffd24a; letter-spacing:.08em; }
-#killBanner .kb-sub{ font-size:13px; color:var(--gold); margin-top:3px; }
-
-/* ===== TIMER ===== */
-#timerBig{ position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:11;
-  font-size:15px; color:var(--sub); font-weight:700; letter-spacing:.1em;
-  background:rgba(14,18,22,.75); border:1px solid var(--line); border-radius:8px; padding:3px 14px; display:none; }
-#timerBig b{ font-size:22px; color:#fff; font-variant-numeric:tabular-nums; }
-#timerBig.warn b{ color:#ff5a4a; }
 
 /* ===== TYPE BAR ===== */
 #typebar{ flex:0 0 auto; background:var(--panel); border-top:2px solid var(--line);
@@ -135,12 +140,14 @@ body{
   font-family:"Courier New",monospace; }
 #roma-done{ color:#4dff6e; } #roma-left{ color:#556270; }
 #typebar .hint{ font-size:11px; color:var(--sub); }
+#nextUnitTag{ font-size:11px; color:#aef29b; min-height:15px; }
 #typebar.flash{ animation:tflash .18s; }
 @keyframes tflash{ 0%{background:#3a1418;} 100%{background:var(--panel);} }
 
 /* ===== OVERLAYS ===== */
 .overlay{ position:absolute; inset:0; z-index:30; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; background:rgba(5,6,10,.9); text-align:center; padding:20px; }
+  align-items:center; justify-content:center; background:rgba(5,6,10,.9); text-align:center; padding:20px;
+  overflow-y:auto; }
 .overlay h1{ font-size:clamp(26px,5vw,44px); letter-spacing:.12em; color:#f0e6d2; margin-bottom:6px; }
 .overlay .sub{ font-size:13px; color:var(--sub); margin:4px 0; line-height:1.8; }
 .gbtn{ margin-top:18px; padding:12px 44px; font-size:18px; font-weight:800; letter-spacing:.12em;
@@ -148,26 +155,25 @@ body{
   border-radius:8px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.5); }
 .gbtn:hover{ filter:brightness(1.08); }
 .gbtn:disabled{ filter:saturate(.3) brightness(.6); cursor:not-allowed; }
-.gbtn2{ margin-top:10px; padding:8px 24px; font-size:13px; font-weight:700;
-  background:var(--panel2); color:var(--txt); border:1px solid var(--line); border-radius:8px; cursor:pointer; }
-.gbtn2:hover{ border-color:var(--gold); }
 #nameIn{ margin-top:14px; padding:9px 14px; font-size:15px; width:230px; text-align:center;
   background:#0d1117; color:#fff; border:1px solid var(--line); border-radius:8px; outline:none; user-select:text; }
 #nameIn:focus{ border-color:var(--gold); }
 #countNum{ font-size:110px; font-weight:900; color:var(--gold); text-shadow:0 0 40px rgba(243,195,74,.5); }
 
 /* result */
-#resDmg{ font-size:clamp(34px,7vw,56px); font-weight:900; color:var(--gold); margin:6px 0;
+#resScore{ font-size:clamp(34px,7vw,56px); font-weight:900; color:var(--gold); margin:6px 0;
   font-variant-numeric:tabular-nums; }
-.resCleared{ font-size:20px; font-weight:800; color:#7fdc7f; letter-spacing:.1em; }
-.resFailed{ font-size:16px; font-weight:700; color:var(--sub); }
-#rankList{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
-#rankList .rrow{ display:flex; justify-content:space-between; gap:12px; padding:3px 8px;
+.resCleared{ font-size:22px; font-weight:800; color:#7fdc7f; letter-spacing:.1em; }
+#resFormula{ font-size:13px; color:var(--txt); margin-top:2px;
+  background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px; padding:7px 16px; }
+#resFormula b{ color:var(--gold); }
+#rankList,#rankList2{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
+.rrow{ display:flex; justify-content:space-between; gap:12px; padding:3px 8px;
   border-bottom:1px solid #1c232b; }
-#rankList .rrow.me{ background:rgba(243,195,74,.12); border-radius:4px; }
-#rankList .rname{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:190px; }
-#rankList .rdmg{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
-#rankTitle{ margin-top:16px; font-size:12px; color:var(--sub); letter-spacing:.15em; }
+.rrow.me{ background:rgba(243,195,74,.12); border-radius:4px; }
+.rname{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:190px; }
+.rdmg{ color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums; }
+.rankTitle{ margin-top:16px; font-size:12px; color:var(--sub); letter-spacing:.15em; }
 
 /* audio btn */
 #audioBtn{ position:absolute; bottom:10px; right:12px; z-index:15; width:38px; height:38px;
@@ -189,51 +195,55 @@ body{
       <span class="bn-epi" id="bossEpi">―</span>
       <span class="bn-main" id="bossName">―</span>
     </div>
+    <div><span id="battleTimer" style="display:none;">0:00</span></div>
   </div>
   <div id="boss"><img id="bossImg" src="" alt="boss"></div>
+  <div id="unitLayer"></div>
 
   <div class="hudBox" id="hudL">
-    <div class="row"><span class="k">今日のベスト</span><span class="v vGold" id="hBest">0</span></div>
-    <div class="row"><span class="k">挑戦回数</span><span class="v" id="hTries">0</span></div>
+    <div class="row"><span class="k">軍勢</span><span class="v vGold" id="hArmy">0</span></div>
+    <div class="row"><span class="k">打鍵/分</span><span class="v" id="hCpm">0</span></div>
+    <div class="row"><span class="k">正確率</span><span class="v" id="hAcc">100%</span></div>
   </div>
   <div class="hudBox" id="hudR">
     <div class="row"><span class="k">通算討伐</span><span class="v vGold" id="hClears">0</span></div>
     <div class="row"><span class="k">連続討伐</span><span class="v" id="hStreak">0日</span></div>
   </div>
 
-  <div id="comboTag"><span id="comboN"></span><small id="comboM"></small></div>
-  <div id="timerBig">TIME <b id="timeLeft">60</b></div>
-  <div id="killBanner"><div class="kb-title">討 伐 ！</div><div class="kb-sub" id="kbSub"></div></div>
+  <div id="killBanner"><div class="kb-title">討 伐 ！</div></div>
   <button id="audioBtn" title="サウンド">♪</button>
 </div>
 
 <div id="typebar">
   <div id="word-kana">－</div>
   <div id="word-roma"><span id="roma-done"></span><span id="roma-left"></span></div>
-  <div class="hint">ローマ字で入力（IMEはOFFのままでOK / 変換中でも打てます）</div>
+  <div id="nextUnitTag"></div>
+  <div class="hint">ことばを打ちきると兵士が召喚される（IMEはOFFのままでOK）</div>
 </div>
 
 <!-- ===== overlays ===== -->
 <div class="overlay" id="ovTitle">
   <h1 class="serif">タイピング神話討伐</h1>
-  <div class="sub">今日の神格を、60秒のタイピングで討て。<br>
-    1打ごとにダメージ。コンボをつなげば火力が上がる。<br>
-    討伐できたら今日はクリア。<b style="color:var(--gold)">また明日、新たな神格が現れる。</b></div>
+  <div class="sub">ことばを打つたび、兵士が召喚され自動で戦う。<br>
+    長いことばほど強い兵士が来る。軍勢を増やして、今日の神格を討て。<br>
+    <b style="color:var(--gold)">倒したら今日はクリア。また明日、新たな神格が現れる。</b></div>
   <div class="sub serif" id="ovTodayBoss" style="color:#e6c674;font-size:15px;"></div>
   <input id="nameIn" maxlength="12" placeholder="なまえ（ランキング用）">
   <button class="gbtn" id="btnStart">挑 戦 す る</button>
-  <div class="sub" style="margin-top:10px;font-size:11px;">Enterでも開始 ／ 記録は自動送信されます</div>
+  <div class="sub" style="margin-top:10px;font-size:11px;">Enterでも開始 ／ スコア＝打鍵速度×正確率×ボス強度</div>
 </div>
 
 <div class="overlay" id="ovCount" style="display:none;"><div id="countNum">3</div></div>
 
 <div class="overlay" id="ovResult" style="display:none;">
-  <div id="resState" class="resCleared">討伐成功！</div>
-  <div class="sub">今回のダメージ</div>
-  <div id="resDmg">0</div>
+  <div class="resCleared">討 伐 成 功 ！</div>
+  <div class="sub">スコア</div>
+  <div id="resScore">0</div>
+  <div id="resFormula"></div>
   <div class="sub" id="resDetail"></div>
-  <button class="gbtn" id="btnRetry">もう一回（Enter）</button>
-  <div id="rankTitle">─ 本日の討伐者ランキング ─</div>
+  <button class="gbtn" id="btnRetry" style="display:none;">もう一回（debug）</button>
+  <div class="sub" style="margin-top:14px;"><b style="color:var(--gold)">また明日、新たな神格が現れる──</b></div>
+  <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
   <div id="rankList"><div class="sub">読み込み中…</div></div>
 </div>
 
@@ -242,7 +252,7 @@ body{
   <div class="sub serif" id="lockBossName" style="font-size:15px;color:#e6c674;"></div>
   <div class="sub">今日の神格はもう倒した。<br><b style="color:var(--gold)">明日、新たな神格が現れる──</b></div>
   <div class="sub" id="lockStats"></div>
-  <div id="rankTitle">─ 本日の討伐者ランキング ─</div>
+  <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
   <div id="rankList2" style="margin-top:8px;"></div>
 </div>
 
@@ -271,14 +281,14 @@ try {
   window._fetchRaidRanking = async (date) => {
     try {
       const snap = await getDocs(query(collection(db,'scores'),
-        where('mode','==','raid1min'), where('date','==',date)));
+        where('mode','==','raidv2'), where('date','==',date)));
       const best = new Map();
       snap.forEach(d => {
         const r = d.data();
         const cur = best.get(r.uid);
-        if (!cur || (r.damage||0) > cur.damage) best.set(r.uid, {name:r.name||'？', damage:r.damage||0, cleared:!!r.cleared});
+        if (!cur || (r.score||0) > cur.score) best.set(r.uid, {name:r.name||'？', score:r.score||0, killMs:r.killMs||0});
       });
-      return [...best.entries()].map(([uid,v])=>({uid,...v})).sort((a,b)=>b.damage-a.damage);
+      return [...best.entries()].map(([uid,v])=>({uid,...v})).sort((a,b)=>b.score-a.score);
     } catch(e){ console.warn('ranking failed', e); return null; }
   };
 } catch(e){ console.warn('firebase init failed', e); }
@@ -288,65 +298,106 @@ try {
 <script>
 'use strict';
 // ═══════════════════════════════════════════════
-// 定数（バランスノブ）— DESIGN.md §5 参照
+// 定数（バランスノブ）— DESIGN.md 参照
 // ═══════════════════════════════════════════════
 const DEBUG = new URLSearchParams(location.search).has('debug');
-const RUN_SECONDS   = DEBUG ? 15 : 60;      // 1プレイ長
-const BOSS_HP       = DEBUG ? 1500 : 7000;  // 討伐ライン（全ボス共通・低め＝救済）
-const DMG_BASE      = 100;                  // 正解1打あたり
-const COMBO_STEP    = 0.02;                 // コンボ1につき+2%
-const COMBO_CAP     = 50;                   // 上限コンボ（=最大×2.0）
-const WORD_BONUS    = 200;                  // 単語完成ボーナス
-const KILL_BONUS    = 2000;                 // 討伐ボーナス（定額・クリア救済）
+const REF_HP        = 24000;              // 強度倍率の基準HP（このHPで×1.0）
+const SCORE_SCALE   = 100;                // スコア表示倍率
+const ATK_IV_MS     = 1200;               // 兵士の攻撃間隔（±バラつきあり）
+const MAX_SPRITES   = 40;                 // 画面に出す兵士スプライトの上限（軍勢数は無制限）
+const DEBUG_DMG_X   = DEBUG ? 10 : 1;     // debug時は兵士火力を上げて即検証
 
 // ═══════════════════════════════════════════════
-// ボス・ロスター（cthulhu-assets 43体）
+// ボス・ロスター（43体・後半ほど強い）
+// flip: 素材が右向き（そのままで兵士側=右を向く）/ それ以外は左向き素材なので反転して右を向かせる
+// fly : 浮遊アニメ / scale: 表示倍率
 // ═══════════════════════════════════════════════
 const ROSTER = [
   {id:'boss01_rat',        f:'boss01_rat.webp',        epi:'下水に蠢くもの',            name:'穢れの巨鼠'},
-  {id:'boss02_nightwing',  f:'boss02_nightwing.webp',  epi:'夜を裂く翼',                name:'ナイトウィング'},
-  {id:'boss03_direbird',   f:'boss03_direbird.webp',   epi:'凶兆を運ぶ怪鳥',            name:'ダイアバード'},
+  {id:'boss02_nightwing',  f:'boss02_nightwing.webp',  epi:'夜を裂く翼',                name:'ナイトウィング', fly:1},
+  {id:'boss03_direbird',   f:'boss03_direbird.webp',   epi:'凶兆を運ぶ怪鳥',            name:'ダイアバード', fly:1},
   {id:'boss03_sanddweller',f:'boss03_sanddweller.webp',epi:'砂丘に潜むもの',            name:'サンドドウェラー'},
   {id:'boss04_blob',       f:'boss04_blob.webp',       epi:'不定形の宴',                name:'蠢く肉塊'},
-  {id:'boss05_hunter',     f:'boss05_hunter.webp',     epi:'闇の狩人',                  name:'ハンター'},
-  {id:'boss06_flame',      f:'boss06_flame.webp',      epi:'焔の眷属',                  name:'フレイムスポーン'},
-  {id:'boss07_skyfiend',   f:'boss07_skyfiend.webp',   epi:'天空を穢すもの',            name:'スカイフィーンド'},
+  {id:'boss05_hunter',     f:'boss05_hunter.webp',     epi:'闇の狩人',                  name:'ハンター', flip:1, fly:1, scale:1.2},
+  {id:'boss06_flame',      f:'boss06_flame.webp',      epi:'焔の眷属',                  name:'フレイムスポーン', fly:1},
+  {id:'boss07_skyfiend',   f:'boss07_skyfiend.webp',   epi:'天空を穢すもの',            name:'スカイフィーンド', scale:.95},
   {id:'boss08_hound',      f:'boss08_hound.webp',      epi:'冒涜の猟犬',                name:'ヘルハウンド'},
-  {id:'boss09_beast',      f:'boss09_beast.webp',      epi:'太古の魔獣',                name:'エルダービースト'},
-  {id:'boss10_stormgod',   f:'boss10_stormgod.webp',   epi:'嵐を統べるもの',            name:'ストームゴッド'},
-  {id:'boss11_eldermind',  f:'boss11_eldermind.webp',  epi:'古き意思',                  name:'エルダーマインド'},
-  {id:'boss11_shantak',    f:'boss11_shantak.webp',    epi:'星間を翔るもの',            name:'シャンタク鳥'},
-  {id:'boss_ghoul',        f:'boss_ghoul.webp',        epi:'屍肉を喰らうもの',          name:'グール'},
-  {id:'boss_ghast',        f:'boss_ghast.webp',        epi:'地底の跳梁者',              name:'ガスト'},
-  {id:'boss_deepone',      f:'boss_deepone.webp',      epi:'海淵より来たる民',          name:'深きものども'},
-  {id:'boss_serpentman',   f:'boss_serpentman.webp',   epi:'太古の蛇人',                name:'サーペントマン'},
-  {id:'boss_nightgaunt',   f:'boss_nightgaunt.webp',   epi:'顔なき夜駆け',              name:'ナイトゴーント'},
-  {id:'boss_gug',          f:'boss_gug.webp',          epi:'禁忌の巨人',                name:'ガグ'},
-  {id:'boss_moonbeast',    f:'boss_moonbeast.webp',    epi:'月の裏の商人',              name:'ムーンビースト'},
+  {id:'boss09_beast',      f:'boss09_beast.webp',      epi:'太古の魔獣',                name:'エルダービースト', scale:1.22},
+  {id:'boss10_stormgod',   f:'boss10_stormgod.webp',   epi:'嵐を統べるもの',            name:'ストームゴッド', fly:1, scale:1.32},
+  {id:'boss11_eldermind',  f:'boss11_eldermind.webp',  epi:'古き意思',                  name:'エルダーマインド', fly:1},
+  {id:'boss11_shantak',    f:'boss11_shantak.webp',    epi:'星間を翔るもの',            name:'シャンタク鳥', fly:1, scale:1.35},
+  {id:'boss_ghoul',        f:'boss_ghoul.webp',        epi:'屍肉を喰らうもの',          name:'グール', scale:.88},
+  {id:'boss_ghast',        f:'boss_ghast.webp',        epi:'地底の跳梁者',              name:'ガスト', scale:.9},
+  {id:'boss_deepone',      f:'boss_deepone.webp',      epi:'海淵より来たる民',          name:'深きものども', scale:.85},
+  {id:'boss_serpentman',   f:'boss_serpentman.webp',   epi:'太古の蛇人',                name:'サーペントマン', scale:.85},
+  {id:'boss_nightgaunt',   f:'boss_nightgaunt.webp',   epi:'顔なき夜駆け',              name:'ナイトゴーント', fly:1},
+  {id:'boss_gug',          f:'boss_gug.webp',          epi:'禁忌の巨人',                name:'ガグ', scale:1.3},
+  {id:'boss_moonbeast',    f:'boss_moonbeast.webp',    epi:'月の裏の商人',              name:'ムーンビースト', scale:.9},
   {id:'boss_hunter2',      f:'boss_hunter2.webp',      epi:'闇を狩るもの',              name:'ブラックハンター'},
   {id:'boss_hellplant',    f:'boss_hellplant.webp',    epi:'冒涜の花',                  name:'ヘルプラント'},
-  {id:'boss_formless',     f:'boss_formless.webp',     epi:'無形の落とし子',            name:'フォームレス・スポーン'},
-  {id:'boss_iwife',        f:'boss_iwife.webp',        epi:'忌まわしき花嫁',            name:'インスマスの妻'},
+  {id:'boss_formless',     f:'boss_formless.webp',     epi:'無形の落とし子',            name:'フォームレス・スポーン', flip:1, fly:1, scale:1.2},
+  {id:'boss_iwife',        f:'boss_iwife.webp',        epi:'忌まわしき花嫁',            name:'インスマスの妻', scale:.82},
   {id:'boss_gogfhoul',     f:'boss_gogfhoul.webp',     epi:'墓穴の王',                  name:'ゴグ＝フール'},
   {id:'boss_objectx',      f:'boss_objectx.webp',      epi:'分類不能存在',              name:'物体Ｘ'},
-  {id:'boss_aihot',        f:'boss_aihot.webp',        epi:'迷宮に潜む卵',              name:'アイホート'},
-  {id:'boss_migo',         f:'boss_migo.webp',         epi:'外宇宙の菌類',              name:'ミ＝ゴ'},
-  {id:'boss_shaggai',      f:'boss_shaggai.webp',      epi:'シャッガイよりの昆虫',      name:'シャン'},
-  {id:'boss_shantak2',     f:'boss_shantak2.webp',     epi:'星風に乗るもの',            name:'大シャンタク'},
-  {id:'boss_tindalos',     f:'boss_tindalos.webp',     epi:'角度より来たるもの',        name:'ティンダロスの猟犬'},
+  {id:'boss_aihot',        f:'boss_aihot.webp',        epi:'迷宮に潜む卵',              name:'アイホート', scale:1.15},
+  {id:'boss_migo',         f:'boss_migo.webp',         epi:'外宇宙の菌類',              name:'ミ＝ゴ', fly:1, scale:1.28},
+  {id:'boss_shaggai',      f:'boss_shaggai.webp',      epi:'シャッガイよりの昆虫',      name:'シャン', fly:1},
+  {id:'boss_shantak2',     f:'boss_shantak2.webp',     epi:'星風に乗るもの',            name:'大シャンタク', fly:1, scale:1.4},
+  {id:'boss_tindalos',     f:'boss_tindalos.webp',     epi:'角度より来たるもの',        name:'ティンダロスの猟犬', scale:1.3},
   {id:'boss_chaugnar',     f:'boss_chaugnar.webp',     epi:'血を啜る長鼻',              name:'チャウグナル・ファウグン'},
-  {id:'boss_glaaki',       f:'boss_glaaki.webp',       epi:'湖底より棘を伸ばすもの',    name:'グラーキ'},
-  {id:'boss_mordiggian',   f:'boss_mordiggian.webp',   epi:'屍食の神',                  name:'モルディギアン'},
-  {id:'boss_igoronak',     f:'boss_igoronak.webp',     epi:'罪深き手',                  name:'イゴーロナク'},
+  {id:'boss_glaaki',       f:'boss_glaaki.webp',       epi:'湖底より棘を伸ばすもの',    name:'グラーキ', scale:1.15},
+  {id:'boss_mordiggian',   f:'boss_mordiggian.webp',   epi:'屍食の神',                  name:'モルディギアン', scale:1.2},
+  {id:'boss_igoronak',     f:'boss_igoronak.webp',     epi:'罪深き手',                  name:'イゴーロナク', flip:1},
   {id:'boss_iselder',      f:'boss_iselder.webp',      epi:'南極の古きもの',            name:'エルダーシング'},
   {id:'boss_tawil',        f:'boss_tawil.webp',        epi:'永劫の門守',                name:'タウィル・アト＝ウムル'},
-  {id:'boss_tsathoggua',   f:'boss_tsathoggua.webp',   epi:'眠りこける漆黒',            name:'ツァトゥグァ'},
-  {id:'boss_cthugha',      f:'boss_cthugha.webp',      epi:'生ける焔',                  name:'クトゥグア'},
-  {id:'boss_blackgoat',    f:'boss_blackgoat.webp',    epi:'千の仔を孕む森の黒山羊',    name:'シュブ＝ニグラス'},
-  {id:'boss_hastur',       f:'boss_hastur.webp',       epi:'名状すべからざるもの',      name:'ハスター'},
-  {id:'boss_nyarlathotep', f:'boss_nyarlathotep.webp', epi:'這い寄る混沌',              name:'ニャルラトホテプ'},
-  {id:'boss_cthulhu',      f:'boss_cthulhu.webp',      epi:'深淵に眠る大いなる夢',      name:'クトゥルフ'},
+  {id:'boss_tsathoggua',   f:'boss_tsathoggua.webp',   epi:'眠りこける漆黒',            name:'ツァトゥグァ', scale:1.2},
+  {id:'boss_cthugha',      f:'boss_cthugha.webp',      epi:'生ける焔',                  name:'クトゥグア', fly:1, scale:1.25},
+  {id:'boss_blackgoat',    f:'boss_blackgoat.webp',    epi:'千の仔を孕む森の黒山羊',    name:'シュブ＝ニグラス', scale:1.35},
+  {id:'boss_hastur',       f:'boss_hastur.webp',       epi:'名状すべからざるもの',      name:'ハスター', fly:1, scale:1.32},
+  {id:'boss_nyarlathotep', f:'boss_nyarlathotep.webp', epi:'這い寄る混沌',              name:'ニャルラトホテプ', scale:1.32},
+  {id:'boss_cthulhu',      f:'boss_cthulhu.webp',      epi:'深淵に眠る大いなる夢',      name:'クトゥルフ', scale:1.55},
 ];
+// HP: ロスター順に強くなる。16,000（初日級）→ 37,800（クトゥルフ）
+// 初心者(1打/秒)で2〜3分、大人(3.5打/秒)で1.5分前後に収まるレンジ（DESIGN.md §5）
+ROSTER.forEach((b, i) => { b.hp = 16000 + i * 520; });
+
+// ═══════════════════════════════════════════════
+// 兵士ユニット（打った単語の長さ＝かな文字数で兵種が決まる）
+// artL: 素材が左向き（右側配置ならそのまま中央を向く）/ それ以外は反転して左=中央を向かせる
+// ═══════════════════════════════════════════════
+const UNIT_TIERS = [
+  { minLen:0, tname:'見習い級', units:[
+    {img:'unit_villager.png', label:'村人',       dmg:6,  h:9 },
+    {img:'unit_farmer.png',   label:'農民',       dmg:6,  h:9 }]},
+  { minLen:3, tname:'戦士級', units:[
+    {img:'unit_sword.png',    label:'剣士',       dmg:9,  h:10},
+    {img:'unit_dwarfb.png',   label:'ドワーフ戦士', dmg:9,  h:9 },
+    {img:'unit_dwarfw.png',   label:'ドワーフ兵',  dmg:9,  h:9 }]},
+  { minLen:4, tname:'精鋭級', units:[
+    {img:'unit_knight.png',   label:'騎士',       dmg:13, h:10},
+    {img:'unit_heavy.png',    label:'重装兵',     dmg:13, h:10},
+    {img:'unit_arch.png',     label:'弓兵',       dmg:12, h:10, proj:'➳', artL:1},
+    {img:'unit_elf.png',      label:'エルフ射手',  dmg:12, h:10, proj:'➳', artL:1}]},
+  // 単語プールの最長は5文字なので、5文字＝最上位帯（竜・天使が出る）
+  { minLen:5, tname:'英雄級', units:[
+    {img:'unit_mage.png',     label:'魔導士',     dmg:18, h:10, proj:'✦', artL:1},
+    {img:'unit_warlock.png',  label:'黒魔術師',   dmg:18, h:10, proj:'✦', artL:1},
+    {img:'unit_dark.png',     label:'暗黒騎士',   dmg:17, h:10},
+    {img:'unit_paladin.png',  label:'パラディン', dmg:24, h:11},
+    {img:'unit_angel.png',    label:'大天使',     dmg:26, h:12, proj:'✨', fly:1},
+    {img:'unit_dragonr.png',  label:'紅竜',       dmg:28, h:13, proj:'🔥', fly:1},
+    {img:'unit_dragong.png',  label:'翠竜',       dmg:28, h:13, proj:'🔥', fly:1},
+    {img:'unit_dragonp.png',  label:'紫竜',       dmg:28, h:13, proj:'🔥', fly:1}]},
+];
+function tierForLen(len){
+  let t = UNIT_TIERS[0];
+  for (const u of UNIT_TIERS) if (len >= u.minLen) t = u;
+  return t;
+}
+function unitForWord(kana){
+  const t = tierForLen(kana.length);
+  return t.units[Math.floor(Math.random() * t.units.length)];
+}
 
 // ═══════════════════════════════════════════════
 // 単語プール（旧ソルジャータイピングの全Waveを統合・重複除去）
@@ -378,6 +429,8 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.im
 
 const TODAY      = jstDateStr();
 const TODAY_BOSS = ROSTER[jstDayIndex() % ROSTER.length];
+const STRENGTH   = TODAY_BOSS.hp / REF_HP;   // 強度倍率（スコアの公平化）
+const BOSS_HP    = DEBUG ? Math.round(TODAY_BOSS.hp * 0.02) : TODAY_BOSS.hp;
 
 // 今日の出題順（全員同じ＝公平）。足りなければ繰り返し。
 function todaysWordOrder(){
@@ -402,17 +455,10 @@ function loadProfile(){
   return p;
 }
 function saveProfile(){ try { localStorage.setItem('ts2_profile', JSON.stringify(profile)); } catch(e){} }
-function loadDaily(){
-  try { const d = JSON.parse(localStorage.getItem('ts2_daily_' + TODAY)); if (d) return d; } catch(e){}
-  return { best:0, tries:0, cleared:false };
-}
-function saveDaily(){ try { localStorage.setItem('ts2_daily_' + TODAY, JSON.stringify(daily)); } catch(e){} }
-
 let profile = loadProfile();
-let daily   = loadDaily();
 
 // ═══════════════════════════════════════════════
-// SE（WebAudio・依存ファイルなし）＋ 斬撃mp3
+// SE（WebAudio）＋ 斬撃mp3
 // ═══════════════════════════════════════════════
 let audioOn = true;
 let _ac = null;
@@ -425,67 +471,112 @@ function blip(freq, dur=0.05, vol=0.12, type='square'){
   g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
   o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + dur);
 }
-const slashSe = new Audio('cthulhu-assets/slash.mp3'); slashSe.volume = 0.5;
+const slashSe = new Audio('cthulhu-assets/slash.mp3'); slashSe.volume = 0.45;
 function playSlash(){ if (!audioOn) return; try { slashSe.currentTime = 0; slashSe.play().catch(()=>{}); } catch(e){} }
 
 // ═══════════════════════════════════════════════
-// DOM
+// DOM / 状態
 // ═══════════════════════════════════════════════
 const $ = id => document.getElementById(id);
-const bossEl = $('boss'), bossImg = $('bossImg');
+const bossEl = $('boss'), bossImg = $('bossImg'), unitLayer = $('unitLayer');
 
-// ═══════════════════════════════════════════════
-// ゲーム状態
-// ═══════════════════════════════════════════════
-let state = 'title';   // title | countdown | playing | result | locked
-let run = null;        // 進行中の1プレイ
+let state = 'title';   // title | countdown | playing | victory | result | locked
+let run = null;
 let wordOrder = todaysWordOrder();
 
 function newRun(){
   return {
-    damage: 0, bossHp: BOSS_HP, killed: false,
-    combo: 0, maxCombo: 0, typedChars: 0, missChars: 0, wordsDone: 0,
-    wordIdx: 0, word: null, endAt: 0, timerId: null,
+    bossHp: BOSS_HP, killed: false,
+    army: [],            // {el, dmg, proj, nextAtk, x, y}
+    typedChars: 0, missChars: 0, wordsDone: 0,
+    wordIdx: 0, word: null,
+    startAt: 0, killMs: 0,
+    tickId: null, hudId: null,
   };
 }
 
 function setBossVisual(){
   bossImg.src = 'cthulhu-assets/' + TODAY_BOSS.f;
+  bossEl.classList.toggle('flip', !TODAY_BOSS.flip);  // 左向き素材を反転して兵士側(右)を向かせる
+  bossEl.classList.toggle('fly', !!TODAY_BOSS.fly);
+  bossEl.style.height = Math.round(52 * (TODAY_BOSS.scale || 1)) + '%';
   $('bossEpi').textContent  = TODAY_BOSS.epi;
   $('bossName').textContent = TODAY_BOSS.name;
 }
-
-function comboMult(c){ return 1 + COMBO_STEP * Math.min(c, COMBO_CAP); }
 
 // ═══════════════════════════════════════════════
 // HUD更新
 // ═══════════════════════════════════════════════
 function fmt(n){ return n.toLocaleString('ja-JP'); }
+function fmtTime(ms){ const s = Math.floor(ms/1000); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function elapsedMs(){ return run && run.startAt ? Date.now() - run.startAt : 0; }
+function curAcc(){ const t = run.typedChars + run.missChars; return t ? run.typedChars / t : 1; }
+function curCpm(){ const m = elapsedMs()/60000; return m > 0.05 ? run.typedChars / m : 0; }
+
 function updateHud(){
-  $('hBest').textContent  = fmt(daily.best);
-  $('hTries').textContent = daily.tries;
   $('hClears').textContent = profile.totalClears;
   $('hStreak').textContent = profile.streak + '日';
+}
+function updateBattleHud(){
+  if (!run) return;
+  $('hArmy').textContent = run.army.length;
+  $('hCpm').textContent  = Math.round(curCpm());
+  $('hAcc').textContent  = Math.round(curAcc()*100) + '%';
+  $('battleTimer').textContent = fmtTime(elapsedMs());
 }
 function updateOrb(){
   const hp = run ? Math.max(0, run.bossHp) : BOSS_HP;
   const pct = Math.round(hp / BOSS_HP * 100);
   $('bossLiquid').style.height = pct + '%';
   $('hptext').textContent = pct + '%';
-  $('hpsub').textContent = run && run.killed ? 'オーバーキル中' : fmt(hp);
-}
-function updateCombo(){
-  const el = $('comboTag');
-  if (run && run.combo >= 5) {
-    el.classList.add('on');
-    $('comboN').textContent = run.combo + ' COMBO';
-    $('comboM').textContent = '×' + comboMult(run.combo).toFixed(2);
-  } else el.classList.remove('on');
+  $('hpsub').textContent = fmt(hp);
 }
 
 // ═══════════════════════════════════════════════
-// 演出
+// 兵士の配置・攻撃（spacebar-clicker流）
+// 兵士は右側に集結し、中央のボスを向く
 // ═══════════════════════════════════════════════
+function spawnPos(fly){
+  return {
+    x: 62 + Math.random() * 32,                         // left %
+    y: fly ? 26 + Math.random() * 22 : 3 + Math.random() * 17,  // bottom %
+  };
+}
+function summonUnit(kana){
+  const def = unitForWord(kana);
+  const pos = spawnPos(def.fly);
+  const el = document.createElement('div');
+  el.className = 'unit-sprite spawn' + (def.fly ? ' fly' : '') + (def.artL ? '' : ' faceL');
+  el.style.left = pos.x + '%';
+  el.style.bottom = pos.y + '%';
+  el.style.height = def.h + '%';
+  el.style.zIndex = def.fly ? 7 : 6;
+  el.innerHTML = '<img src="cthulhu-assets/' + def.img + '" alt="">';
+  const unit = { el: null, def, dmg: def.dmg * DEBUG_DMG_X, proj: def.proj,
+    nextAtk: Date.now() + 400 + Math.random()*600, x: pos.x, y: pos.y };
+  if (unitLayer.children.length < MAX_SPRITES) {
+    unitLayer.appendChild(el);
+    unit.el = el;
+    setTimeout(() => el.classList.remove('spawn'), 500);
+  } else {
+    // スプライト上限超え：既存のスプライトを光らせて「増援が合流した」感を出す
+    const kids = unitLayer.children;
+    const pick = kids[Math.floor(Math.random()*kids.length)];
+    if (pick) { pick.classList.remove('spawn'); void pick.offsetWidth; pick.classList.add('spawn'); }
+  }
+  run.army.push(unit);
+  // 召喚トースト
+  const toast = document.createElement('div');
+  toast.className = 'summonToast';
+  toast.textContent = def.label + ' 参上！';
+  toast.style.left = pos.x + '%';
+  toast.style.bottom = (pos.y + def.h + 2) + '%';
+  $('field').appendChild(toast);
+  setTimeout(() => toast.remove(), 900);
+  playSlash();
+  updateBattleHud();
+}
+
 function bossRect(){ return bossEl.getBoundingClientRect(); }
 function fieldRect(){ return $('field').getBoundingClientRect(); }
 function popDamage(amount, big){
@@ -498,22 +589,62 @@ function popDamage(amount, big){
   $('field').appendChild(el);
   setTimeout(() => el.remove(), 850);
 }
-function slashFx(){
-  const fr = fieldRect(), br = bossRect();
-  const el = document.createElement('div');
-  el.className = 'clickfx';
-  el.style.setProperty('--ang', Math.floor(Math.random()*360) + 'deg');
-  el.style.left = (br.left - fr.left + br.width*0.5 - 45 + (Math.random()-0.5)*60) + 'px';
-  el.style.top  = (br.top - fr.top + br.height*0.35 - 45 + (Math.random()-0.5)*50) + 'px';
-  $('field').appendChild(el);
-  setTimeout(() => el.remove(), 260);
-}
+
+let lastShake = 0;
 function bossHitFx(){
+  const now = Date.now();
+  if (now - lastShake < 200) return;   // 多段ヒットで震えすぎない
+  lastShake = now;
   bossEl.classList.remove('hit'); void bossEl.offsetWidth; bossEl.classList.add('hit');
 }
 
+function unitAttack(u){
+  if (u.el) {
+    u.el.classList.remove('attacking'); void u.el.offsetWidth; u.el.classList.add('attacking');
+  }
+  const dmg = Math.max(1, Math.round(u.dmg * (0.9 + Math.random()*0.2)));
+  if (u.proj && u.el) {
+    // 遠隔：投射体がボスへ飛ぶ → 着弾でダメージ
+    const fr = fieldRect(), br = bossRect(), ur = u.el.getBoundingClientRect();
+    const p = document.createElement('span');
+    p.className = 'proj';
+    p.textContent = u.proj;
+    p.style.left = (ur.left - fr.left + ur.width/2) + 'px';
+    p.style.top  = (ur.top - fr.top + ur.height*0.3) + 'px';
+    $('field').appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.left = (br.left - fr.left + br.width*(0.4+Math.random()*0.2)) + 'px';
+      p.style.top  = (br.top - fr.top + br.height*(0.25+Math.random()*0.3)) + 'px';
+    });
+    setTimeout(() => { p.remove(); dealDamage(dmg); }, 330);
+  } else {
+    dealDamage(dmg);
+  }
+}
+
+function dealDamage(dmg){
+  if (!run || run.killed || state !== 'playing') return;
+  run.bossHp -= dmg;
+  popDamage(dmg, false);
+  bossHitFx();
+  updateOrb();
+  if (run.bossHp <= 0) { run.bossHp = 0; onKill(); }
+}
+
+function battleTick(){
+  if (!run || state !== 'playing') return;
+  const now = Date.now();
+  for (const u of run.army) {
+    if (now >= u.nextAtk) {
+      u.nextAtk = now + ATK_IV_MS * (0.85 + Math.random()*0.3);
+      unitAttack(u);
+      if (run.killed) break;
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════
-// タイピング処理
+// タイピング → 召喚
 // ═══════════════════════════════════════════════
 function nextWord(){
   run.word = new TypingWord(wordOrder[run.wordIdx % wordOrder.length]);
@@ -521,67 +652,141 @@ function nextWord(){
   renderWord();
 }
 function renderWord(){
-  if (!run || !run.word) { $('word-kana').textContent = '－'; $('roma-done').textContent=''; $('roma-left').textContent=''; return; }
+  if (!run || !run.word) { $('word-kana').textContent = '－'; $('roma-done').textContent=''; $('roma-left').textContent=''; $('nextUnitTag').textContent=''; return; }
   $('word-kana').textContent = run.word.kana;
   $('roma-done').textContent = run.word.done;
   $('roma-left').textContent = run.word.left;
-}
-
-function applyDamage(amount, big){
-  run.damage += amount;
-  if (!run.killed) {
-    run.bossHp -= amount;
-    if (run.bossHp <= 0) { run.bossHp = 0; onKill(); }
-  }
-  updateOrb();
-  popDamage(amount, big);
+  const t = tierForLen(run.word.kana.length);
+  $('nextUnitTag').textContent = '召喚予定：' + t.tname + '（' + run.word.kana.length + '文字）';
 }
 
 function onChar(ch){
   if (state !== 'playing' || !run.word) return;
   const r = run.word.press(ch);
   if (r.status === 'reject') {
-    run.combo = 0; run.missChars++;
-    updateCombo();
+    run.missChars++;
     $('typebar').classList.remove('flash'); void $('typebar').offsetWidth; $('typebar').classList.add('flash');
     blip(110, 0.08, 0.1, 'sawtooth');
+    updateBattleHud();
     return;
   }
-  // 正解1打
   run.typedChars++;
-  run.combo++; run.maxCombo = Math.max(run.maxCombo, run.combo);
-  const dmg = Math.round(DMG_BASE * comboMult(run.combo));
-  applyDamage(dmg, false);
-  bossHitFx(); slashFx();
-  blip(300 + Math.min(run.combo, COMBO_CAP) * 10, 0.045, 0.09);
-  updateCombo();
+  blip(320 + Math.min(run.army.length, 40) * 8, 0.04, 0.08);
   if (r.status === 'complete') {
     run.wordsDone++;
-    applyDamage(WORD_BONUS, true);
-    playSlash();
+    summonUnit(run.word.kana);
     nextWord();
   } else {
     renderWord();
   }
 }
 
-function onKill(){
-  run.killed = true;
-  bossEl.classList.add('dying');
-  setTimeout(() => { bossEl.classList.remove('dying'); bossEl.classList.add('dead'); }, 700);
-  run.damage += KILL_BONUS;
-  $('kbSub').textContent = '討伐ボーナス +' + fmt(KILL_BONUS) + ' ／ 残り時間はオーバーキル！';
-  $('killBanner').classList.add('on');
-  setTimeout(() => $('killBanner').classList.remove('on'), 2600);
-  blip(880, 0.4, 0.15, 'triangle'); setTimeout(()=>blip(1320,0.5,0.12,'triangle'), 120);
+// ═══════════════════════════════════════════════
+// スコア＝打鍵速度 × 正確率 × ボス強度（どのボスの日でも公平）
+// ═══════════════════════════════════════════════
+function calcScore(){
+  const cpm = run.typedChars / (run.killMs / 60000);
+  const acc = curAcc();
+  return { cpm, acc, score: Math.round(cpm * acc * STRENGTH * SCORE_SCALE) };
 }
 
 // ═══════════════════════════════════════════════
-// プレイの開始と終了
+// 討伐 → 結果
+// ═══════════════════════════════════════════════
+function onKill(){
+  run.killed = true;
+  run.killMs = elapsedMs();
+  state = 'victory';
+  clearInterval(run.tickId); clearInterval(run.hudId);
+  bossEl.classList.add('dying');
+  $('killBanner').classList.add('on');
+  blip(880, 0.4, 0.15, 'triangle'); setTimeout(()=>blip(1320,0.5,0.12,'triangle'), 120);
+  setTimeout(() => {
+    $('killBanner').classList.remove('on');
+    showResult();
+  }, 1400);
+}
+
+function showResult(){
+  state = 'result';
+  const { cpm, acc, score } = calcScore();
+
+  if (!DEBUG) {
+    const y = new Date(jstNow().getTime() - 86400e3).toISOString().slice(0,10);
+    if (profile.lastClearDate !== TODAY) {
+      profile.streak = (profile.lastClearDate === y) ? profile.streak + 1 : 1;
+      profile.totalClears++;
+      profile.lastClearDate = TODAY;
+    }
+    if (score > (profile.bestAll||0)) profile.bestAll = score;
+    saveProfile();
+  }
+  updateHud();
+
+  $('resScore').textContent = fmt(score);
+  $('resFormula').innerHTML =
+    '速度 <b>' + Math.round(cpm) + '</b>打/分 × 正確率 <b>' + Math.round(acc*100) + '%</b>' +
+    ' × ボス強度 <b>×' + STRENGTH.toFixed(2) + '</b>';
+  $('resDetail').textContent =
+    '討伐タイム ' + fmtTime(run.killMs) + ' ／ 軍勢 ' + run.army.length + '体 ／ ' +
+    run.wordsDone + '語 ／ ミス' + run.missChars;
+  $('btnRetry').style.display = DEBUG ? '' : 'none';
+  showOverlay('ovResult');
+
+  if (window._submitRaid && !DEBUG) {
+    window._submitRaid({ uid: profile.uid, name: profile.name, mode:'raidv2',
+      boss: TODAY_BOSS.id, date: TODAY, score, cpm: Math.round(cpm),
+      acc: Math.round(acc*100), killMs: run.killMs, hp: BOSS_HP });
+  }
+  refreshRanking('rankList');
+}
+
+async function refreshRanking(listId){
+  const el = $(listId);
+  el.innerHTML = '<div class="sub">読み込み中…</div>';
+  if (!window._fetchRaidRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
+  const rows = await window._fetchRaidRanking(TODAY);
+  if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
+  if (!rows.length) { el.innerHTML = '<div class="sub">まだ記録なし。一番乗り！</div>'; return; }
+  el.innerHTML = rows.slice(0, 10).map((r, i) =>
+    '<div class="rrow' + (r.uid === profile.uid ? ' me' : '') + '">' +
+    '<span>' + (i+1) + '位 <span class="rname">' + escapeHtml(r.name) + '</span></span>' +
+    '<span class="rdmg">' + fmt(r.score) + '</span></div>'
+  ).join('');
+  const myIdx = rows.findIndex(r => r.uid === profile.uid);
+  if (myIdx >= 10) {
+    const r = rows[myIdx];
+    el.innerHTML += '<div class="rrow me"><span>' + (myIdx+1) + '位 <span class="rname">' +
+      escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.score) + '</span></div>';
+  }
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ═══════════════════════════════════════════════
+// オーバーレイ制御
+// ═══════════════════════════════════════════════
+function showOverlay(id){
+  for (const o of ['ovTitle','ovCount','ovResult','ovLocked'])
+    $(o).style.display = (o === id) ? 'flex' : 'none';
+}
+
+function showLocked(){
+  state = 'locked';
+  setBossVisual();
+  bossEl.classList.add('dying');
+  $('bossLiquid').style.height = '0%'; $('hptext').textContent = '0%'; $('hpsub').textContent = '討伐済み';
+  $('lockBossName').textContent = TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
+  $('lockStats').innerHTML = '通算討伐 <b style="color:var(--gold)">' + profile.totalClears + '</b>体　連続 <b>' + profile.streak + '</b>日' +
+    '　自己ベスト <b>' + fmt(profile.bestAll||0) + '</b>';
+  showOverlay('ovLocked');
+  refreshRanking('rankList2');
+}
+
+// ═══════════════════════════════════════════════
+// 開始フロー
 // ═══════════════════════════════════════════════
 function startCountdown(){
   if (state === 'countdown' || state === 'playing') return;
-  // 名前を保存
   const nm = $('nameIn').value.trim();
   profile.name = nm || profile.name || '名無しの探索者';
   saveProfile();
@@ -602,112 +807,32 @@ function startCountdown(){
 
 function beginRun(){
   run = newRun();
-  bossEl.classList.remove('dead','dying');
+  unitLayer.innerHTML = '';
+  bossEl.classList.remove('dying');
   setBossVisual();
   state = 'playing';
   showOverlay(null);
-  $('timerBig').style.display = 'block';
-  $('timerBig').classList.remove('warn');
+  $('battleTimer').style.display = 'inline-block';
   nextWord();
-  updateOrb(); updateCombo();
-  run.endAt = Date.now() + RUN_SECONDS * 1000;
-  run.timerId = setInterval(tick, 100);
-  tick();
+  updateOrb(); updateBattleHud();
+  run.startAt = Date.now();
+  run.tickId = setInterval(battleTick, 120);
+  run.hudId  = setInterval(updateBattleHud, 500);
 }
 
-function tick(){
-  const left = Math.max(0, run.endAt - Date.now());
-  const sec = Math.ceil(left / 1000);
-  $('timeLeft').textContent = sec;
-  if (sec <= 10) $('timerBig').classList.add('warn');
-  if (left <= 0) endRun();
-}
-
-function endRun(){
-  clearInterval(run.timerId);
-  state = 'result';
-  $('timerBig').style.display = 'none';
-  $('comboTag').classList.remove('on');
-
-  daily.tries++;
-  const isBest = run.damage > daily.best;
-  if (isBest) daily.best = run.damage;
-  if (run.damage > (profile.bestAll||0)) profile.bestAll = run.damage;
-
-  let newClear = false;
-  if (run.killed && !daily.cleared) {
-    daily.cleared = true; newClear = true;
-    // ストリーク：昨日もクリアしてたら+1、切れてたら1から
-    const y = new Date(jstNow().getTime() - 86400e3).toISOString().slice(0,10);
-    profile.streak = (profile.lastClearDate === y) ? profile.streak + 1 : 1;
-    profile.totalClears++;
-    profile.lastClearDate = TODAY;
-  }
-  saveDaily(); saveProfile(); updateHud();
-
-  // 結果画面
-  $('resState').className = run.killed ? 'resCleared' : 'resFailed';
-  $('resState').textContent = run.killed ? '討 伐 成 功 ！' : '討伐ならず……あと ' + fmt(run.bossHp) + ' 削れば倒せた';
-  $('resDmg').textContent = fmt(run.damage);
-  $('resDetail').innerHTML =
-    (isBest ? '<b style="color:var(--gold)">今日のベスト更新！</b>　' : '') +
-    '正確' + run.typedChars + '打 ／ ミス' + run.missChars + ' ／ 最大' + run.maxCombo + 'コンボ ／ ' + run.wordsDone + '語';
-  $('btnRetry').textContent = daily.cleared ? '討伐済み！また明日' : 'もう一回（Enter）';
-  $('btnRetry').disabled = daily.cleared && !DEBUG;
-  showOverlay('ovResult');
-
-  // 送信＆ランキング（失敗してもゲームは成立）
-  if (window._submitRaid) {
-    window._submitRaid({ uid: profile.uid, name: profile.name, mode:'raid1min',
-      boss: TODAY_BOSS.id, date: TODAY, damage: run.damage, cleared: run.killed });
-  }
-  refreshRanking('rankList');
-}
-
-async function refreshRanking(listId){
-  const el = $(listId);
-  el.innerHTML = '<div class="sub">読み込み中…</div>';
-  if (!window._fetchRaidRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
-  const rows = await window._fetchRaidRanking(TODAY);
-  if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
-  if (!rows.length) { el.innerHTML = '<div class="sub">まだ記録なし。一番乗り！</div>'; return; }
-  el.innerHTML = rows.slice(0, 10).map((r, i) =>
-    '<div class="rrow' + (r.uid === profile.uid ? ' me' : '') + '">' +
-    '<span>' + (i+1) + '位 <span class="rname">' + escapeHtml(r.name) + (r.cleared ? ' ⚔' : '') + '</span></span>' +
-    '<span class="rdmg">' + fmt(r.damage) + '</span></div>'
-  ).join('');
-  const myIdx = rows.findIndex(r => r.uid === profile.uid);
-  if (myIdx >= 10) {
-    const r = rows[myIdx];
-    el.innerHTML += '<div class="rrow me"><span>' + (myIdx+1) + '位 <span class="rname">' +
-      escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.damage) + '</span></div>';
-  }
-}
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// ═══════════════════════════════════════════════
-// オーバーレイ制御
-// ═══════════════════════════════════════════════
-function showOverlay(id){
-  for (const o of ['ovTitle','ovCount','ovResult','ovLocked'])
-    $(o).style.display = (o === id) ? 'flex' : 'none';
-}
-
-function showLocked(){
-  state = 'locked';
-  setBossVisual();
-  bossEl.classList.add('dead');
-  updateOrb();
-  $('bossLiquid').style.height = '0%'; $('hptext').textContent = '0%'; $('hpsub').textContent = '討伐済み';
-  $('lockBossName').textContent = TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
-  $('lockStats').innerHTML = '今日のベスト <b style="color:var(--gold)">' + fmt(daily.best) + '</b>' +
-    '　通算討伐 <b>' + profile.totalClears + '</b>体　連続 <b>' + profile.streak + '</b>日';
-  showOverlay('ovLocked');
-  refreshRanking('rankList2');
+function abortRun(){
+  if (state !== 'playing') return;
+  clearInterval(run.tickId); clearInterval(run.hudId);
+  unitLayer.innerHTML = '';
+  run = null;
+  state = 'title';
+  $('battleTimer').style.display = 'none';
+  setBossVisual(); updateOrb(); renderWord();
+  showOverlay('ovTitle');
 }
 
 // ═══════════════════════════════════════════════
-// 入力（typing-engine の IME回避キー取得）
+// 入力
 // ═══════════════════════════════════════════════
 attachKeyInput({
   isActive: () => state === 'playing',
@@ -715,12 +840,13 @@ attachKeyInput({
   onEnter: () => {
     if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown(); return; }
     if (state === 'title') startCountdown();
-    else if (state === 'result' && !$('btnRetry').disabled) startCountdown();
+    else if (state === 'result' && DEBUG) startCountdown();
   },
+  onEscape: () => { if (state === 'playing') abortRun(); },
 });
 
 $('btnStart').addEventListener('click', startCountdown);
-$('btnRetry').addEventListener('click', () => { if (!$('btnRetry').disabled) startCountdown(); });
+$('btnRetry').addEventListener('click', () => startCountdown());
 $('audioBtn').addEventListener('click', () => {
   audioOn = !audioOn;
   $('audioBtn').style.color = audioOn ? 'var(--gold)' : '#555';
@@ -734,8 +860,8 @@ $('audioBtn').addEventListener('click', () => {
   setBossVisual();
   updateHud(); updateOrb();
   $('nameIn').value = profile.name || '';
-  $('ovTodayBoss').textContent = '本日の神格：' + TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
-  if (daily.cleared && !DEBUG) showLocked();
+  $('ovTodayBoss').textContent = '本日の神格：' + TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」（強度×' + STRENGTH.toFixed(2) + '）';
+  if (profile.lastClearDate === TODAY && !DEBUG) showLocked();
   else showOverlay('ovTitle');
 })();
 </script>
