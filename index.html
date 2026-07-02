@@ -39,7 +39,6 @@ body{
 #boss img{ height:100%; width:auto; max-width:70vw; object-fit:contain; object-position:bottom;
   display:block; transform-origin:bottom center;
   filter:drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
-#boss.flip img{ transform:scaleX(-1); }
 @keyframes bobFly{ 0%,100%{translate:0 0;} 50%{translate:0 -2.5%;} }
 #boss.fly img{ animation:bobFly 3.2s ease-in-out infinite; }
 #boss.hit img{ animation:shake .13s; filter:brightness(1.9) saturate(1.5) drop-shadow(0 10px 24px rgba(0,0,0,.65)); }
@@ -87,13 +86,15 @@ body{
   animation:ubob 1.6s ease-in-out infinite; will-change:transform; pointer-events:none; }
 .unit-sprite img{ height:100%; width:auto; display:block; image-rendering:pixelated;
   filter:drop-shadow(0 3px 4px rgba(0,0,0,.55)); }
-.unit-sprite.faceL img{ transform:scaleX(-1); }
+.unit-sprite.mir img{ transform:scaleX(-1); }
 @keyframes ubob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
 .unit-sprite.fly{ animation:floatFly 3.6s ease-in-out infinite; }
 @keyframes floatFly{ 0%{transform:translate(0,0);} 25%{transform:translate(-4px,-8px);}
   50%{transform:translate(0,-15px);} 75%{transform:translate(4px,-7px);} 100%{transform:translate(0,0);} }
-.unit-sprite.attacking{ animation:lungeL .3s ease; }
+.unit-sprite.sideR.attacking{ animation:lungeL .3s ease; }
+.unit-sprite.sideL.attacking{ animation:lungeR .3s ease; }
 @keyframes lungeL{ 0%{transform:translateX(0);}40%{transform:translateX(-9px);}100%{transform:translateX(0);} }
+@keyframes lungeR{ 0%{transform:translateX(0);}40%{transform:translateX(9px);}100%{transform:translateX(0);} }
 .unit-sprite.fly.attacking{ animation:floatFly 3.6s ease-in-out infinite; }
 .unit-sprite.fly.attacking img{ animation:rfire .3s ease; }
 @keyframes rfire{ 0%{transform:translateY(0);}40%{transform:translateY(-5px);}100%{transform:translateY(0);} }
@@ -309,53 +310,53 @@ const DEBUG_DMG_X   = DEBUG ? 10 : 1;     // debug時は兵士火力を上げて
 
 // ═══════════════════════════════════════════════
 // ボス・ロスター（43体・後半ほど強い）
-// flip: 素材が右向き（そのままで兵士側=右を向く）/ それ以外は左向き素材なので反転して右を向かせる
+// face: 素材の向き。L=左向き（兵士は左に集結）/ R=右向き（兵士は右）/ F=正面（兵士は左右に分散）
 // fly : 浮遊アニメ / scale: 表示倍率
 // ═══════════════════════════════════════════════
 const ROSTER = [
-  {id:'boss01_rat',        f:'boss01_rat.webp',        epi:'下水に蠢くもの',            name:'穢れの巨鼠'},
-  {id:'boss02_nightwing',  f:'boss02_nightwing.webp',  epi:'夜を裂く翼',                name:'ナイトウィング', fly:1},
-  {id:'boss03_direbird',   f:'boss03_direbird.webp',   epi:'凶兆を運ぶ怪鳥',            name:'ダイアバード', fly:1},
-  {id:'boss03_sanddweller',f:'boss03_sanddweller.webp',epi:'砂丘に潜むもの',            name:'サンドドウェラー'},
-  {id:'boss04_blob',       f:'boss04_blob.webp',       epi:'不定形の宴',                name:'蠢く肉塊'},
-  {id:'boss05_hunter',     f:'boss05_hunter.webp',     epi:'闇の狩人',                  name:'ハンター', flip:1, fly:1, scale:1.2},
-  {id:'boss06_flame',      f:'boss06_flame.webp',      epi:'焔の眷属',                  name:'フレイムスポーン', fly:1},
-  {id:'boss07_skyfiend',   f:'boss07_skyfiend.webp',   epi:'天空を穢すもの',            name:'スカイフィーンド', scale:.95},
-  {id:'boss08_hound',      f:'boss08_hound.webp',      epi:'冒涜の猟犬',                name:'ヘルハウンド'},
-  {id:'boss09_beast',      f:'boss09_beast.webp',      epi:'太古の魔獣',                name:'エルダービースト', scale:1.22},
-  {id:'boss10_stormgod',   f:'boss10_stormgod.webp',   epi:'嵐を統べるもの',            name:'ストームゴッド', fly:1, scale:1.32},
-  {id:'boss11_eldermind',  f:'boss11_eldermind.webp',  epi:'古き意思',                  name:'エルダーマインド', fly:1},
-  {id:'boss11_shantak',    f:'boss11_shantak.webp',    epi:'星間を翔るもの',            name:'シャンタク鳥', fly:1, scale:1.35},
-  {id:'boss_ghoul',        f:'boss_ghoul.webp',        epi:'屍肉を喰らうもの',          name:'グール', scale:.88},
-  {id:'boss_ghast',        f:'boss_ghast.webp',        epi:'地底の跳梁者',              name:'ガスト', scale:.9},
-  {id:'boss_deepone',      f:'boss_deepone.webp',      epi:'海淵より来たる民',          name:'深きものども', scale:.85},
-  {id:'boss_serpentman',   f:'boss_serpentman.webp',   epi:'太古の蛇人',                name:'サーペントマン', scale:.85},
-  {id:'boss_nightgaunt',   f:'boss_nightgaunt.webp',   epi:'顔なき夜駆け',              name:'ナイトゴーント', fly:1},
-  {id:'boss_gug',          f:'boss_gug.webp',          epi:'禁忌の巨人',                name:'ガグ', scale:1.3},
-  {id:'boss_moonbeast',    f:'boss_moonbeast.webp',    epi:'月の裏の商人',              name:'ムーンビースト', scale:.9},
-  {id:'boss_hunter2',      f:'boss_hunter2.webp',      epi:'闇を狩るもの',              name:'ブラックハンター'},
-  {id:'boss_hellplant',    f:'boss_hellplant.webp',    epi:'冒涜の花',                  name:'ヘルプラント'},
-  {id:'boss_formless',     f:'boss_formless.webp',     epi:'無形の落とし子',            name:'フォームレス・スポーン', flip:1, fly:1, scale:1.2},
-  {id:'boss_iwife',        f:'boss_iwife.webp',        epi:'忌まわしき花嫁',            name:'インスマスの妻', scale:.82},
-  {id:'boss_gogfhoul',     f:'boss_gogfhoul.webp',     epi:'墓穴の王',                  name:'ゴグ＝フール'},
-  {id:'boss_objectx',      f:'boss_objectx.webp',      epi:'分類不能存在',              name:'物体Ｘ'},
-  {id:'boss_aihot',        f:'boss_aihot.webp',        epi:'迷宮に潜む卵',              name:'アイホート', scale:1.15},
-  {id:'boss_migo',         f:'boss_migo.webp',         epi:'外宇宙の菌類',              name:'ミ＝ゴ', fly:1, scale:1.28},
-  {id:'boss_shaggai',      f:'boss_shaggai.webp',      epi:'シャッガイよりの昆虫',      name:'シャン', fly:1},
-  {id:'boss_shantak2',     f:'boss_shantak2.webp',     epi:'星風に乗るもの',            name:'大シャンタク', fly:1, scale:1.4},
-  {id:'boss_tindalos',     f:'boss_tindalos.webp',     epi:'角度より来たるもの',        name:'ティンダロスの猟犬', scale:1.3},
-  {id:'boss_chaugnar',     f:'boss_chaugnar.webp',     epi:'血を啜る長鼻',              name:'チャウグナル・ファウグン'},
-  {id:'boss_glaaki',       f:'boss_glaaki.webp',       epi:'湖底より棘を伸ばすもの',    name:'グラーキ', scale:1.15},
-  {id:'boss_mordiggian',   f:'boss_mordiggian.webp',   epi:'屍食の神',                  name:'モルディギアン', scale:1.2},
-  {id:'boss_igoronak',     f:'boss_igoronak.webp',     epi:'罪深き手',                  name:'イゴーロナク', flip:1},
-  {id:'boss_iselder',      f:'boss_iselder.webp',      epi:'南極の古きもの',            name:'エルダーシング'},
-  {id:'boss_tawil',        f:'boss_tawil.webp',        epi:'永劫の門守',                name:'タウィル・アト＝ウムル'},
-  {id:'boss_tsathoggua',   f:'boss_tsathoggua.webp',   epi:'眠りこける漆黒',            name:'ツァトゥグァ', scale:1.2},
-  {id:'boss_cthugha',      f:'boss_cthugha.webp',      epi:'生ける焔',                  name:'クトゥグア', fly:1, scale:1.25},
-  {id:'boss_blackgoat',    f:'boss_blackgoat.webp',    epi:'千の仔を孕む森の黒山羊',    name:'シュブ＝ニグラス', scale:1.35},
-  {id:'boss_hastur',       f:'boss_hastur.webp',       epi:'名状すべからざるもの',      name:'ハスター', fly:1, scale:1.32},
-  {id:'boss_nyarlathotep', f:'boss_nyarlathotep.webp', epi:'這い寄る混沌',              name:'ニャルラトホテプ', scale:1.32},
-  {id:'boss_cthulhu',      f:'boss_cthulhu.webp',      epi:'深淵に眠る大いなる夢',      name:'クトゥルフ', scale:1.55},
+  {id:'boss01_rat',        f:'boss01_rat.webp',        epi:'下水に蠢くもの',            name:'穢れの巨鼠', face:'L'},
+  {id:'boss02_nightwing',  f:'boss02_nightwing.webp',  epi:'夜を裂く翼',                name:'ナイトウィング', face:'L', fly:1},
+  {id:'boss03_direbird',   f:'boss03_direbird.webp',   epi:'凶兆を運ぶ怪鳥',            name:'ダイアバード', face:'L', fly:1},
+  {id:'boss03_sanddweller',f:'boss03_sanddweller.webp',epi:'砂丘に潜むもの',            name:'サンドドウェラー', face:'F'},
+  {id:'boss04_blob',       f:'boss04_blob.webp',       epi:'不定形の宴',                name:'蠢く肉塊', face:'L'},
+  {id:'boss05_hunter',     f:'boss05_hunter.webp',     epi:'闇の狩人',                  name:'ハンター', face:'L',  fly:1, scale:1.2},
+  {id:'boss06_flame',      f:'boss06_flame.webp',      epi:'焔の眷属',                  name:'フレイムスポーン', face:'F', fly:1},
+  {id:'boss07_skyfiend',   f:'boss07_skyfiend.webp',   epi:'天空を穢すもの',            name:'スカイフィーンド', face:'F', scale:.95},
+  {id:'boss08_hound',      f:'boss08_hound.webp',      epi:'冒涜の猟犬',                name:'ヘルハウンド', face:'L'},
+  {id:'boss09_beast',      f:'boss09_beast.webp',      epi:'太古の魔獣',                name:'エルダービースト', face:'L', scale:1.22},
+  {id:'boss10_stormgod',   f:'boss10_stormgod.webp',   epi:'嵐を統べるもの',            name:'ストームゴッド', face:'L', fly:1, scale:1.32},
+  {id:'boss11_eldermind',  f:'boss11_eldermind.webp',  epi:'古き意思',                  name:'エルダーマインド', face:'F', fly:1},
+  {id:'boss11_shantak',    f:'boss11_shantak.webp',    epi:'星間を翔るもの',            name:'シャンタク鳥', face:'L', fly:1, scale:1.35},
+  {id:'boss_ghoul',        f:'boss_ghoul.webp',        epi:'屍肉を喰らうもの',          name:'グール', face:'L', scale:.88},
+  {id:'boss_ghast',        f:'boss_ghast.webp',        epi:'地底の跳梁者',              name:'ガスト', face:'F', scale:.9},
+  {id:'boss_deepone',      f:'boss_deepone.webp',      epi:'海淵より来たる民',          name:'深きものども', face:'F', scale:.85},
+  {id:'boss_serpentman',   f:'boss_serpentman.webp',   epi:'太古の蛇人',                name:'サーペントマン', face:'L', scale:.85},
+  {id:'boss_nightgaunt',   f:'boss_nightgaunt.webp',   epi:'顔なき夜駆け',              name:'ナイトゴーント', face:'F', fly:1},
+  {id:'boss_gug',          f:'boss_gug.webp',          epi:'禁忌の巨人',                name:'ガグ', face:'F', scale:1.3},
+  {id:'boss_moonbeast',    f:'boss_moonbeast.webp',    epi:'月の裏の商人',              name:'ムーンビースト', face:'F', scale:.9},
+  {id:'boss_hunter2',      f:'boss_hunter2.webp',      epi:'闇を狩るもの',              name:'ブラックハンター', face:'L'},
+  {id:'boss_hellplant',    f:'boss_hellplant.webp',    epi:'冒涜の花',                  name:'ヘルプラント', face:'F'},
+  {id:'boss_formless',     f:'boss_formless.webp',     epi:'無形の落とし子',            name:'フォームレス・スポーン', face:'R',  fly:1, scale:1.2},
+  {id:'boss_iwife',        f:'boss_iwife.webp',        epi:'忌まわしき花嫁',            name:'インスマスの妻', face:'L', scale:.82},
+  {id:'boss_gogfhoul',     f:'boss_gogfhoul.webp',     epi:'墓穴の王',                  name:'ゴグ＝フール', face:'F'},
+  {id:'boss_objectx',      f:'boss_objectx.webp',      epi:'分類不能存在',              name:'物体Ｘ', face:'F'},
+  {id:'boss_aihot',        f:'boss_aihot.webp',        epi:'迷宮に潜む卵',              name:'アイホート', face:'F', scale:1.15},
+  {id:'boss_migo',         f:'boss_migo.webp',         epi:'外宇宙の菌類',              name:'ミ＝ゴ', face:'F', fly:1, scale:1.28},
+  {id:'boss_shaggai',      f:'boss_shaggai.webp',      epi:'シャッガイよりの昆虫',      name:'シャン', face:'L', fly:1},
+  {id:'boss_shantak2',     f:'boss_shantak2.webp',     epi:'星風に乗るもの',            name:'大シャンタク', face:'F', fly:1, scale:1.4},
+  {id:'boss_tindalos',     f:'boss_tindalos.webp',     epi:'角度より来たるもの',        name:'ティンダロスの猟犬', face:'L', scale:1.3},
+  {id:'boss_chaugnar',     f:'boss_chaugnar.webp',     epi:'血を啜る長鼻',              name:'チャウグナル・ファウグン', face:'F'},
+  {id:'boss_glaaki',       f:'boss_glaaki.webp',       epi:'湖底より棘を伸ばすもの',    name:'グラーキ', face:'F', scale:1.15},
+  {id:'boss_mordiggian',   f:'boss_mordiggian.webp',   epi:'屍食の神',                  name:'モルディギアン', face:'F', scale:1.2},
+  {id:'boss_igoronak',     f:'boss_igoronak.webp',     epi:'罪深き手',                  name:'イゴーロナク', face:'F'},
+  {id:'boss_iselder',      f:'boss_iselder.webp',      epi:'南極の古きもの',            name:'エルダーシング', face:'F'},
+  {id:'boss_tawil',        f:'boss_tawil.webp',        epi:'永劫の門守',                name:'タウィル・アト＝ウムル', face:'F'},
+  {id:'boss_tsathoggua',   f:'boss_tsathoggua.webp',   epi:'眠りこける漆黒',            name:'ツァトゥグァ', face:'L', scale:1.2},
+  {id:'boss_cthugha',      f:'boss_cthugha.webp',      epi:'生ける焔',                  name:'クトゥグア', face:'F', fly:1, scale:1.25},
+  {id:'boss_blackgoat',    f:'boss_blackgoat.webp',    epi:'千の仔を孕む森の黒山羊',    name:'シュブ＝ニグラス', face:'F', scale:1.35},
+  {id:'boss_hastur',       f:'boss_hastur.webp',       epi:'名状すべからざるもの',      name:'ハスター', face:'F', fly:1, scale:1.32},
+  {id:'boss_nyarlathotep', f:'boss_nyarlathotep.webp', epi:'這い寄る混沌',              name:'ニャルラトホテプ', face:'L', scale:1.32},
+  {id:'boss_cthulhu',      f:'boss_cthulhu.webp',      epi:'深淵に眠る大いなる夢',      name:'クトゥルフ', face:'F', scale:1.55},
 ];
 // HP: ロスター順に強くなる。16,000（初日級）→ 37,800（クトゥルフ）
 // 初心者(1打/秒)で2〜3分、大人(3.5打/秒)で1.5分前後に収まるレンジ（DESIGN.md §5）
@@ -428,7 +429,11 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.im
   t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 
 const TODAY      = jstDateStr();
-const TODAY_BOSS = ROSTER[jstDayIndex() % ROSTER.length];
+const _bossParam = new URLSearchParams(location.search).get('boss');
+const _bossOverride = DEBUG && _bossParam
+  ? (ROSTER.find(b => b.id === _bossParam || b.id === 'boss_' + _bossParam) || ROSTER[parseInt(_bossParam,10)] || null)
+  : null;
+const TODAY_BOSS = _bossOverride || ROSTER[jstDayIndex() % ROSTER.length];
 const STRENGTH   = TODAY_BOSS.hp / REF_HP;   // 強度倍率（スコアの公平化）
 const BOSS_HP    = DEBUG ? Math.round(TODAY_BOSS.hp * 0.02) : TODAY_BOSS.hp;
 
@@ -497,8 +502,9 @@ function newRun(){
 
 function setBossVisual(){
   bossImg.src = 'cthulhu-assets/' + TODAY_BOSS.f;
-  bossEl.classList.toggle('flip', !TODAY_BOSS.flip);  // 左向き素材を反転して兵士側(右)を向かせる
   bossEl.classList.toggle('fly', !!TODAY_BOSS.fly);
+  // 向きに応じてボス位置を微調整：兵士側にスペースを空ける
+  bossEl.style.left = TODAY_BOSS.face === 'L' ? '58%' : TODAY_BOSS.face === 'R' ? '42%' : '50%';
   bossEl.style.height = Math.round(52 * (TODAY_BOSS.scale || 1)) + '%';
   $('bossEpi').textContent  = TODAY_BOSS.epi;
   $('bossName').textContent = TODAY_BOSS.name;
@@ -534,19 +540,54 @@ function updateOrb(){
 
 // ═══════════════════════════════════════════════
 // 兵士の配置・攻撃（spacebar-clicker流）
-// 兵士は右側に集結し、中央のボスを向く
+// ボスのface属性で集結サイド決定：L=左 / R=右 / F=左右交互
+// スロット隊列（前衛から順に整列・微ゆらぎ）で重なりを防ぐ
 // ═══════════════════════════════════════════════
-function spawnPos(fly){
+function makeSlots(side){
+  // side: 'L' | 'R'  地上3列×7 ＋ 空中2列×5
+  const ground = [], flying = [];
+  const rows = [3, 9.5, 16];
+  for (let r = 0; r < rows.length; r++)
+    for (let c = 0; c < 7; c++) {
+      const off = c * 4.6 + (r % 2) * 2.3;
+      ground.push({ x: side === 'R' ? 62 + off : 38 - off, y: rows[r] });
+    }
+  // 空中列はボス（中央の大型スプライト）に重ならないよう外側に寄せる
+  const frows = [30, 40];
+  for (let r = 0; r < frows.length; r++)
+    for (let c = 0; c < 5; c++) {
+      const off = c * 5.5 + (r % 2) * 2.7;
+      flying.push({ x: side === 'R' ? 74 + off : 26 - off, y: frows[r] });
+    }
+  return { ground, flying, gi: 0, fi: 0 };
+}
+let slotSides = null;   // beginRunで初期化
+let sideToggle = 0;
+function nextSide(){
+  const f = TODAY_BOSS.face || 'F';
+  if (f === 'L' || f === 'R') return f;
+  sideToggle ^= 1;                      // 正面ボスは左右交互
+  return sideToggle ? 'R' : 'L';
+}
+function takeSlot(side, fly){
+  const s = slotSides[side];
+  const pool = fly ? s.flying : s.ground;
+  const idx  = fly ? s.fi++ : s.gi++;
+  const base = pool[idx % pool.length];
+  const wrap = Math.floor(idx / pool.length);           // 満員なら重ね置き（少しずらす）
   return {
-    x: 62 + Math.random() * 32,                         // left %
-    y: fly ? 26 + Math.random() * 22 : 3 + Math.random() * 17,  // bottom %
+    x: base.x + (Math.random()-0.5) * 1.6 + wrap * 0.8,
+    y: base.y + (Math.random()-0.5) * 1.2 + wrap * 0.6,
   };
 }
 function summonUnit(kana){
   const def = unitForWord(kana);
-  const pos = spawnPos(def.fly);
+  const side = nextSide();
+  const pos = takeSlot(side, def.fly);
+  // 素材は基本右向き(artLは左向き)。右側配置→左(中央)を向かせる、左側配置→右(中央)を向かせる
+  const mir = side === 'R' ? !def.artL : !!def.artL;
   const el = document.createElement('div');
-  el.className = 'unit-sprite spawn' + (def.fly ? ' fly' : '') + (def.artL ? '' : ' faceL');
+  el.className = 'unit-sprite spawn side' + side + (def.fly ? ' fly' : '') + (mir ? ' mir' : '');
   el.style.left = pos.x + '%';
   el.style.bottom = pos.y + '%';
   el.style.height = def.h + '%';
@@ -807,6 +848,8 @@ function startCountdown(){
 
 function beginRun(){
   run = newRun();
+  slotSides = { L: makeSlots('L'), R: makeSlots('R') };
+  sideToggle = Math.random() < 0.5 ? 0 : 1;
   unitLayer.innerHTML = '';
   bossEl.classList.remove('dying');
   setBossVisual();
