@@ -100,6 +100,9 @@ body{
 .unit-sprite.fly.attacking{ animation:floatFly 3.6s ease-in-out infinite; }
 .unit-sprite.fly.attacking img{ animation:rfire .3s ease; }
 @keyframes rfire{ 0%{transform:translateY(0);}40%{transform:translateY(-5px);}100%{transform:translateY(0);} }
+.unit-sprite .stk{ position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+  font-size:10px; font-weight:800; color:#ffd24a; background:rgba(10,8,4,.8);
+  border:1px solid #8a6c30; border-radius:8px; padding:0 5px; white-space:nowrap; }
 .unit-sprite.spawn{ animation:uspawn .45s ease; }
 @keyframes uspawn{ 0%{transform:translateY(14px) scale(.4); opacity:0;} 60%{transform:translateY(-6px) scale(1.12); opacity:1;} 100%{transform:translateY(0) scale(1);} }
 .proj{ position:absolute; z-index:90; font-size:17px; pointer-events:none; will-change:left,top;
@@ -180,6 +183,8 @@ body{
 .rankTitle{ margin-top:16px; font-size:12px; color:var(--sub); letter-spacing:.15em; }
 
 /* audio btn */
+#debugTag{ position:absolute; bottom:12px; left:12px; z-index:260; font-size:11px; font-weight:700;
+  color:#ff9a3d; background:rgba(20,14,8,.85); border:1px solid #8a5c30; border-radius:8px; padding:3px 10px; display:none; }
 #audioBtn{ position:absolute; bottom:10px; right:12px; z-index:260; width:38px; height:38px;
   border:1px solid var(--line); border-radius:50%; background:rgba(20,24,30,.85);
   color:var(--gold); font-size:17px; cursor:pointer; line-height:1; }
@@ -207,6 +212,7 @@ body{
   <div class="hudBox" id="hudL">
     <div class="row" id="killsRow" style="display:none;"><span class="k">討伐数</span><span class="v vGold" id="hKills">0</span></div>
     <div class="row"><span class="k">軍勢</span><span class="v vGold" id="hArmy">0</span></div>
+    <div class="row"><span class="k">軍勢DPS</span><span class="v" id="hDps">0</span></div>
     <div class="row"><span class="k">打鍵/分</span><span class="v" id="hCpm">0</span></div>
     <div class="row"><span class="k">正確率</span><span class="v" id="hAcc">100%</span></div>
   </div>
@@ -216,6 +222,7 @@ body{
   </div>
 
   <div id="killBanner"><div class="kb-title">討 伐 ！</div><div class="kb-sub" id="kbText"></div></div>
+  <div id="debugTag">練習モード（記録・セーブされません）</div>
   <button id="audioBtn" title="サウンド">♪</button>
 </div>
 
@@ -473,8 +480,10 @@ function todaysWordOrder(){
 // HP: 序盤は1.25倍/体で気持ちよく、11体目以降は1.12倍/体で伸びる
 // ═══════════════════════════════════════════════
 function survHP(k){
-  return Math.round(500 * Math.pow(1.25, Math.min(k, 10)) * Math.pow(1.12, Math.max(k - 10, 0)));
+  // 序盤1.30倍/体で「秒殺の快感」→11体目から1.15倍/体の複利で本格化
+  return Math.round(800 * Math.pow(1.30, Math.min(k, 10)) * Math.pow(1.15, Math.max(k - 10, 0)));
 }
+const SURV_MILESTONES = [10, 25, 50, 100, 200, 500, 1000];
 function loadSurv(){
   try {
     const s = JSON.parse(localStorage.getItem('ts2_surv'));
@@ -550,6 +559,11 @@ function newRun(mode){
 function curBoss(){
   return (run && run.mode === 'survival') ? ROSTER[run.kills % ROSTER.length] : TODAY_BOSS;
 }
+function applySurvLoopLabel(){
+  if (!run || run.mode !== 'survival') return;
+  const loop = Math.floor(run.kills / ROSTER.length);
+  if (loop > 0) $('bossName').textContent += '・' + (loop + 1) + '周目';
+}
 
 function setBossVisual(b){
   b = b || TODAY_BOSS;
@@ -578,6 +592,7 @@ function updateHud(){
 function updateBattleHud(){
   if (!run) return;
   $('hArmy').textContent = run.army.length;
+  $('hDps').textContent  = fmt(Math.round(run.army.reduce((a,u)=>a+u.dmg,0) / (ATK_IV_MS/1000)));
   $('hCpm').textContent  = Math.round(curCpm());
   $('hAcc').textContent  = Math.round(curAcc()*100) + '%';
   if (run.mode === 'survival') {
@@ -654,14 +669,28 @@ function placeUnit(def){
   const unit = { el: null, def, dmg: def.dmg * DEBUG_DMG_X, proj: def.proj,
     nextAtk: Date.now() + 400 + Math.random()*600, x: pos.x, y: pos.y };
   if (unitLayer.children.length < MAX_SPRITES) {
+    el.dataset.img = def.img;
+    el.dataset.baseH = def.h;
+    el.dataset.stack = '1';
     unitLayer.appendChild(el);
     unit.el = el;
     setTimeout(() => el.classList.remove('spawn'), 500);
   } else {
-    // スプライト上限超え：既存のスプライトを光らせて「増援が合流した」感を出す
-    const kids = unitLayer.children;
-    const pick = kids[Math.floor(Math.random()*kids.length)];
-    if (pick) { pick.classList.remove('spawn'); void pick.offsetWidth; pick.classList.add('spawn'); }
+    // スプライト上限超え：同型のスプライトに合流 → ×Nバッジ＆少しずつ巨大化（成長が見え続ける）
+    const kids = [...unitLayer.children];
+    const same = kids.filter(k => k.dataset.img === def.img);
+    const pick = same.length ? same[Math.floor(Math.random()*same.length)]
+                             : kids[Math.floor(Math.random()*kids.length)];
+    if (pick) {
+      const st = (parseInt(pick.dataset.stack || '1', 10) + 1);
+      pick.dataset.stack = st;
+      let badge = pick.querySelector('.stk');
+      if (!badge) { badge = document.createElement('span'); badge.className = 'stk'; pick.appendChild(badge); }
+      badge.textContent = '×' + st;
+      const grow = Math.min(1 + st * 0.05, 1.6);
+      pick.style.height = (parseFloat(pick.dataset.baseH || def.h) * grow) + '%';
+      pick.classList.remove('spawn'); void pick.offsetWidth; pick.classList.add('spawn');
+    }
   }
   run.army.push(unit);
   return { unit, pos };
@@ -758,6 +787,7 @@ function battleTick(){
 function nextWord(){
   run.word = new TypingWord(wordOrder[run.wordIdx % wordOrder.length]);
   run.wordIdx++;
+  run.curWordMiss = false;
   renderWord();
 }
 function renderWord(){
@@ -774,6 +804,8 @@ function onChar(ch){
   const r = run.word.press(ch);
   if (r.status === 'reject') {
     run.missChars++;
+    run.curWordMiss = true;
+    run.perfectStreak = 0;
     $('typebar').classList.remove('flash'); void $('typebar').offsetWidth; $('typebar').classList.add('flash');
     blip(110, 0.08, 0.1, 'sawtooth');
     updateBattleHud();
@@ -783,7 +815,28 @@ function onChar(ch){
   blip(320 + Math.min(run.army.length, 40) * 8, 0.04, 0.08);
   if (r.status === 'complete') {
     run.wordsDone++;
-    summonUnit(run.word.kana);
+    const kana = run.word.kana;
+    summonUnit(kana);
+    // ノーミスで打ちきると連続パーフェクト。5連続ごとに援軍がもう1体！
+    if (!run.curWordMiss) {
+      run.perfectStreak = (run.perfectStreak || 0) + 1;
+      if (run.perfectStreak % 5 === 0) {
+        const def = unitForWord(kana);
+        placeUnit(def);
+        if (run.mode === 'survival' && run.unitCounts) {
+          run.unitCounts[def.img] = (run.unitCounts[def.img] || 0) + 1;
+          saveSurv();
+        }
+        const toast = document.createElement('div');
+        toast.className = 'summonToast';
+        toast.style.color = '#ffd24a';
+        toast.textContent = '🔥 ' + run.perfectStreak + '連続パーフェクト！援軍 +1！';
+        toast.style.left = '50%'; toast.style.bottom = '34%';
+        $('field').appendChild(toast);
+        setTimeout(() => toast.remove(), 900);
+        blip(1200, 0.15, 0.12, 'triangle');
+      }
+    }
     nextWord();
   } else {
     renderWord();
@@ -825,9 +878,15 @@ function survKill(){
   saveSurv();
   submitSurv(false);
   $('hKills').textContent = fmt(run.kills);
-  $('kbText').textContent = '累計 ' + fmt(run.kills) + ' 体';
+  if (SURV_MILESTONES.includes(run.kills)) {
+    $('kbText').textContent = '🏆 偉業達成！累計 ' + fmt(run.kills) + ' 体討伐！';
+    blip(660,0.2,0.15,'triangle'); setTimeout(()=>blip(880,0.2,0.15,'triangle'),140);
+    setTimeout(()=>blip(1100,0.25,0.15,'triangle'),280); setTimeout(()=>blip(1470,0.4,0.15,'triangle'),430);
+  } else {
+    $('kbText').textContent = '累計 ' + fmt(run.kills) + ' 体';
+    blip(880, 0.25, 0.14, 'triangle'); setTimeout(()=>blip(1320,0.3,0.1,'triangle'), 100);
+  }
   $('killBanner').classList.add('on');
-  blip(880, 0.25, 0.14, 'triangle'); setTimeout(()=>blip(1320,0.3,0.1,'triangle'), 100);
   bossEl.classList.add('dying');
   setTimeout(() => {
     $('killBanner').classList.remove('on');
@@ -835,6 +894,7 @@ function survKill(){
     if (!run || run.mode !== 'survival' || state !== 'playing') return;
     bossEl.classList.remove('dying');
     setBossVisual(curBoss());
+    applySurvLoopLabel();
     bossEl.classList.add('enter');
     setTimeout(() => bossEl.classList.remove('enter'), 650);
     run.bossMax = run.bossHp = survHP(run.kills);
@@ -950,6 +1010,7 @@ function backToTitle(){
   unitLayer.innerHTML = '';
   $('battleTimer').style.display = 'none';
   $('killsRow').style.display = 'none';
+  $('hudR').style.display = '';
   bossEl.classList.remove('dying');
   setBossVisual(TODAY_BOSS); updateOrb(); renderWord();
   updateTitleUI();
@@ -1003,12 +1064,15 @@ function beginRun(){
       if (!def) continue;
       for (let i = 0; i < n; i++) placeUnit(def);
     }
+    applySurvLoopLabel();
     $('killsRow').style.display = '';
     $('hKills').textContent = fmt(run.kills);
+    $('hudR').style.display = 'none';   // デイリー用の通算/連続はサバイバルでは非表示（誤解防止）
   } else {
     run.bossMax = run.bossHp = BOSS_HP;
     setBossVisual(TODAY_BOSS);
     $('killsRow').style.display = 'none';
+    $('hudR').style.display = '';
   }
   showOverlay(null);
   $('battleTimer').style.display = 'inline-block';
@@ -1050,10 +1114,18 @@ $('audioBtn').addEventListener('click', () => {
   $('audioBtn').textContent = audioOn ? '♪' : '✕';
 });
 
+// タブを閉じる/裏に回した瞬間にセーブ＆ランキング送信（取りこぼし防止）
+function flushSurv(){
+  if (run && run.mode === 'survival' && state === 'playing') { saveSurv(); submitSurv(true); }
+}
+window.addEventListener('beforeunload', flushSurv);
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushSurv(); });
+
 // ═══════════════════════════════════════════════
 // 起動
 // ═══════════════════════════════════════════════
 (function init(){
+  if (DEBUG) $('debugTag').style.display = 'block';
   setBossVisual(TODAY_BOSS);
   updateHud(); updateOrb();
   $('nameIn').value = profile.name || '';
