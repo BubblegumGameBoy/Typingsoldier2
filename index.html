@@ -45,6 +45,8 @@ body{
 @keyframes shake{ 0%{margin-left:0;}25%{margin-left:-6px;}50%{margin-left:5px;}75%{margin-left:-3px;}100%{margin-left:0;} }
 #boss.dying img{ animation:die .8s forwards; }
 @keyframes die{ to{ translate:0 6%; rotate:8deg; scale:.9; opacity:.2; filter:saturate(0) brightness(.45);} }
+#boss.enter img{ animation:bossIn .6s ease; }
+@keyframes bossIn{ 0%{opacity:0; translate:0 -6%; scale:.92;} 100%{opacity:1; translate:0 0; scale:1;} }
 
 /* ===== BOSS PLATE (orb + name) ===== */
 #bossPlate{ position:absolute; top:3.5%; left:50%; transform:translateX(-50%);
@@ -100,13 +102,13 @@ body{
 @keyframes rfire{ 0%{transform:translateY(0);}40%{transform:translateY(-5px);}100%{transform:translateY(0);} }
 .unit-sprite.spawn{ animation:uspawn .45s ease; }
 @keyframes uspawn{ 0%{transform:translateY(14px) scale(.4); opacity:0;} 60%{transform:translateY(-6px) scale(1.12); opacity:1;} 100%{transform:translateY(0) scale(1);} }
-.proj{ position:absolute; z-index:7; font-size:17px; pointer-events:none; will-change:left,top;
+.proj{ position:absolute; z-index:90; font-size:17px; pointer-events:none; will-change:left,top;
   transition:left .32s linear, top .32s linear; text-shadow:0 0 6px rgba(255,220,120,.8); }
-.summonToast{ position:absolute; z-index:9; font-size:12px; font-weight:700; color:#aef29b;
+.summonToast{ position:absolute; z-index:101; font-size:12px; font-weight:700; color:#aef29b;
   text-shadow:0 1px 3px #000; pointer-events:none; animation:flo .9s ease-out forwards; white-space:nowrap; }
 
 /* ===== HUD ===== */
-.hudBox{ position:absolute; z-index:10; background:rgba(14,18,22,.82);
+.hudBox{ position:absolute; z-index:200; background:rgba(14,18,22,.82);
   border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12px;
   backdrop-filter:blur(3px); }
 #hudL{ top:10px; left:10px; min-width:150px; }
@@ -116,7 +118,7 @@ body{
 .vGold{ color:var(--gold); }
 
 /* damage pops */
-.dmg{ position:absolute; z-index:9; font-weight:800; pointer-events:none;
+.dmg{ position:absolute; z-index:100; font-weight:800; pointer-events:none;
   text-shadow:0 1px 2px #000,0 0 4px rgba(0,0,0,.6); animation:flo .8s ease-out forwards; white-space:nowrap; }
 @keyframes flo{ 0%{transform:translate(-50%,0) scale(.6); opacity:0;}
   20%{transform:translate(-50%,-14px) scale(1.1); opacity:1;}
@@ -125,11 +127,12 @@ body{
 .dmg.w{ color:#ff9a3d; font-size:22px; }
 
 /* ===== KILL BANNER ===== */
-#killBanner{ position:absolute; top:24%; left:50%; transform:translateX(-50%); z-index:20;
+#killBanner{ position:absolute; top:24%; left:50%; transform:translateX(-50%); z-index:250;
   background:rgba(10,8,4,.85); border:1px solid #f3c34a; border-radius:10px;
   padding:10px 26px; text-align:center; pointer-events:none; opacity:0; transition:opacity .25s; }
 #killBanner.on{ opacity:1; }
 #killBanner .kb-title{ font-size:clamp(20px,4vw,30px); font-weight:900; color:#ffd24a; letter-spacing:.08em; }
+#killBanner .kb-sub{ font-size:14px; color:var(--gold); margin-top:3px; }
 
 /* ===== TYPE BAR ===== */
 #typebar{ flex:0 0 auto; background:var(--panel); border-top:2px solid var(--line);
@@ -146,7 +149,7 @@ body{
 @keyframes tflash{ 0%{background:#3a1418;} 100%{background:var(--panel);} }
 
 /* ===== OVERLAYS ===== */
-.overlay{ position:absolute; inset:0; z-index:30; display:flex; flex-direction:column;
+.overlay{ position:absolute; inset:0; z-index:300; display:flex; flex-direction:column;
   align-items:center; justify-content:center; background:rgba(5,6,10,.9); text-align:center; padding:20px;
   overflow-y:auto; }
 .overlay h1{ font-size:clamp(26px,5vw,44px); letter-spacing:.12em; color:#f0e6d2; margin-bottom:6px; }
@@ -168,7 +171,7 @@ body{
 #resFormula{ font-size:13px; color:var(--txt); margin-top:2px;
   background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px; padding:7px 16px; }
 #resFormula b{ color:var(--gold); }
-#rankList,#rankList2{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
+#rankList,#rankList2,#rankListT,#rankListS{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
 .rrow{ display:flex; justify-content:space-between; gap:12px; padding:3px 8px;
   border-bottom:1px solid #1c232b; }
 .rrow.me{ background:rgba(243,195,74,.12); border-radius:4px; }
@@ -177,7 +180,7 @@ body{
 .rankTitle{ margin-top:16px; font-size:12px; color:var(--sub); letter-spacing:.15em; }
 
 /* audio btn */
-#audioBtn{ position:absolute; bottom:10px; right:12px; z-index:15; width:38px; height:38px;
+#audioBtn{ position:absolute; bottom:10px; right:12px; z-index:260; width:38px; height:38px;
   border:1px solid var(--line); border-radius:50%; background:rgba(20,24,30,.85);
   color:var(--gold); font-size:17px; cursor:pointer; line-height:1; }
 </style>
@@ -202,6 +205,7 @@ body{
   <div id="unitLayer"></div>
 
   <div class="hudBox" id="hudL">
+    <div class="row" id="killsRow" style="display:none;"><span class="k">討伐数</span><span class="v vGold" id="hKills">0</span></div>
     <div class="row"><span class="k">軍勢</span><span class="v vGold" id="hArmy">0</span></div>
     <div class="row"><span class="k">打鍵/分</span><span class="v" id="hCpm">0</span></div>
     <div class="row"><span class="k">正確率</span><span class="v" id="hAcc">100%</span></div>
@@ -211,7 +215,7 @@ body{
     <div class="row"><span class="k">連続討伐</span><span class="v" id="hStreak">0日</span></div>
   </div>
 
-  <div id="killBanner"><div class="kb-title">討 伐 ！</div></div>
+  <div id="killBanner"><div class="kb-title">討 伐 ！</div><div class="kb-sub" id="kbText"></div></div>
   <button id="audioBtn" title="サウンド">♪</button>
 </div>
 
@@ -230,8 +234,18 @@ body{
     <b style="color:var(--gold)">倒したら今日はクリア。また明日、新たな神格が現れる。</b></div>
   <div class="sub serif" id="ovTodayBoss" style="color:#e6c674;font-size:15px;"></div>
   <input id="nameIn" maxlength="12" placeholder="なまえ（ランキング用）">
-  <button class="gbtn" id="btnStart">挑 戦 す る</button>
-  <div class="sub" style="margin-top:10px;font-size:11px;">Enterでも開始 ／ スコア＝打鍵速度×正確率×ボス強度</div>
+  <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center;">
+    <button class="gbtn" id="btnStart">本日の討伐</button>
+    <button class="gbtn" id="btnSurvival" style="background:linear-gradient(#9a6ad0,#6a3aa0);border:1px solid #4a2a70;color:#fff;">サバイバル</button>
+  </div>
+  <div class="sub" style="margin-top:8px;font-size:11px;">
+    本日の討伐＝1日1回・スコア勝負（Enterでも開始）<br>
+    サバイバル＝エンドレス・軍勢は引き継ぎ・累計討伐数を競う</div>
+  <div class="sub" id="survStats" style="color:#c9b3f3;font-weight:700;"></div>
+  <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
+  <div id="rankListT"><div class="sub">読み込み中…</div></div>
+  <div class="rankTitle">─ サバイバル累計討伐ランキング ─</div>
+  <div id="rankListS"><div class="sub">読み込み中…</div></div>
 </div>
 
 <div class="overlay" id="ovCount" style="display:none;"><div id="countNum">3</div></div>
@@ -243,18 +257,10 @@ body{
   <div id="resFormula"></div>
   <div class="sub" id="resDetail"></div>
   <button class="gbtn" id="btnRetry" style="display:none;">もう一回（debug）</button>
+  <button class="gbtn2" id="btnResultBack">タイトルへ戻る（サバイバルで遊べる）</button>
   <div class="sub" style="margin-top:14px;"><b style="color:var(--gold)">また明日、新たな神格が現れる──</b></div>
   <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
   <div id="rankList"><div class="sub">読み込み中…</div></div>
-</div>
-
-<div class="overlay" id="ovLocked" style="display:none;">
-  <h1 class="serif" style="color:#7fdc7f;">討 伐 完 了</h1>
-  <div class="sub serif" id="lockBossName" style="font-size:15px;color:#e6c674;"></div>
-  <div class="sub">今日の神格はもう倒した。<br><b style="color:var(--gold)">明日、新たな神格が現れる──</b></div>
-  <div class="sub" id="lockStats"></div>
-  <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
-  <div id="rankList2" style="margin-top:8px;"></div>
 </div>
 
 <!-- Firebase -->
@@ -277,6 +283,19 @@ try {
     try {
       await addDoc(collection(db, 'scores'), { ...rec, ts: serverTimestamp() });
     } catch(e){ console.warn('submit failed', e); }
+  };
+  // サバイバル：全期間・uid毎の最大累計討伐数
+  window._fetchSurvRanking = async () => {
+    try {
+      const snap = await getDocs(query(collection(db,'scores'), where('mode','==','survival')));
+      const best = new Map();
+      snap.forEach(d => {
+        const r = d.data();
+        const cur = best.get(r.uid);
+        if (!cur || (r.kills||0) > cur.kills) best.set(r.uid, {name:r.name||'？', kills:r.kills||0});
+      });
+      return [...best.entries()].map(([uid,v])=>({uid,...v})).sort((a,b)=>b.kills-a.kills);
+    } catch(e){ console.warn('surv ranking failed', e); return null; }
   };
   // 等価フィルタのみ（複合インデックス不要）。整列・uid重複除去はクライアント側。
   window._fetchRaidRanking = async (date) => {
@@ -390,6 +409,8 @@ const UNIT_TIERS = [
     {img:'unit_dragong.png',  label:'翠竜',       dmg:28, h:13, proj:'🔥', fly:1},
     {img:'unit_dragonp.png',  label:'紫竜',       dmg:28, h:13, proj:'🔥', fly:1}]},
 ];
+const UNIT_BY_IMG = {};
+for (const t of UNIT_TIERS) for (const u of t.units) UNIT_BY_IMG[u.img] = u;
 function tierForLen(len){
   let t = UNIT_TIERS[0];
   for (const u of UNIT_TIERS) if (len >= u.minLen) t = u;
@@ -448,6 +469,26 @@ function todaysWordOrder(){
 }
 
 // ═══════════════════════════════════════════════
+// サバイバル（エンドレス・軍勢引き継ぎ・累計討伐数）
+// HP: 序盤は1.25倍/体で気持ちよく、11体目以降は1.12倍/体で伸びる
+// ═══════════════════════════════════════════════
+function survHP(k){
+  return Math.round(500 * Math.pow(1.25, Math.min(k, 10)) * Math.pow(1.12, Math.max(k - 10, 0)));
+}
+function loadSurv(){
+  try {
+    const s = JSON.parse(localStorage.getItem('ts2_surv'));
+    if (s && typeof s.kills === 'number') return { kills: s.kills, hpLeft: s.hpLeft, counts: s.counts || {} };
+  } catch(e){}
+  return { kills: 0, hpLeft: null, counts: {} };
+}
+function saveSurv(){
+  if (!run || run.mode !== 'survival' || DEBUG) return;
+  try { localStorage.setItem('ts2_surv', JSON.stringify({
+    kills: run.kills, hpLeft: Math.max(0, Math.round(run.bossHp)), counts: run.unitCounts })); } catch(e){}
+}
+
+// ═══════════════════════════════════════════════
 // プロフィール（localStorage）
 // ═══════════════════════════════════════════════
 function loadProfile(){
@@ -485,13 +526,19 @@ function playSlash(){ if (!audioOn) return; try { slashSe.currentTime = 0; slash
 const $ = id => document.getElementById(id);
 const bossEl = $('boss'), bossImg = $('bossImg'), unitLayer = $('unitLayer');
 
-let state = 'title';   // title | countdown | playing | victory | result | locked
+let state = 'title';   // title | countdown | playing | victory | result
 let run = null;
+let gameMode = 'daily'; // daily | survival
 let wordOrder = todaysWordOrder();
 
-function newRun(){
+function newRun(mode){
+  const surv = mode === 'survival' ? loadSurv() : null;
   return {
-    bossHp: BOSS_HP, killed: false,
+    mode,
+    kills: surv ? surv.kills : 0,
+    _survLoaded: surv,
+    unitCounts: null,
+    bossMax: 0, bossHp: 0, killed: false, swapping: false,
     army: [],            // {el, dmg, proj, nextAtk, x, y}
     typedChars: 0, missChars: 0, wordsDone: 0,
     wordIdx: 0, word: null,
@@ -500,14 +547,19 @@ function newRun(){
   };
 }
 
-function setBossVisual(){
-  bossImg.src = 'cthulhu-assets/' + TODAY_BOSS.f;
-  bossEl.classList.toggle('fly', !!TODAY_BOSS.fly);
+function curBoss(){
+  return (run && run.mode === 'survival') ? ROSTER[run.kills % ROSTER.length] : TODAY_BOSS;
+}
+
+function setBossVisual(b){
+  b = b || TODAY_BOSS;
+  bossImg.src = 'cthulhu-assets/' + b.f;
+  bossEl.classList.toggle('fly', !!b.fly);
   // 向きに応じてボス位置を微調整：兵士側にスペースを空ける
-  bossEl.style.left = TODAY_BOSS.face === 'L' ? '58%' : TODAY_BOSS.face === 'R' ? '42%' : '50%';
-  bossEl.style.height = Math.round(52 * (TODAY_BOSS.scale || 1)) + '%';
-  $('bossEpi').textContent  = TODAY_BOSS.epi;
-  $('bossName').textContent = TODAY_BOSS.name;
+  bossEl.style.left = b.face === 'L' ? '58%' : b.face === 'R' ? '42%' : '50%';
+  bossEl.style.height = Math.round(52 * (b.scale || 1)) + '%';
+  $('bossEpi').textContent  = b.epi;
+  $('bossName').textContent = b.name;
 }
 
 // ═══════════════════════════════════════════════
@@ -528,11 +580,18 @@ function updateBattleHud(){
   $('hArmy').textContent = run.army.length;
   $('hCpm').textContent  = Math.round(curCpm());
   $('hAcc').textContent  = Math.round(curAcc()*100) + '%';
-  $('battleTimer').textContent = fmtTime(elapsedMs());
+  if (run.mode === 'survival') {
+    $('battleTimer').textContent = '討伐 ' + fmt(run.kills) + ' 体';
+    $('hKills').textContent = fmt(run.kills);
+    saveSurv();   // HP残量も含めて随時セーブ（0.5秒毎・軽量）
+  } else {
+    $('battleTimer').textContent = fmtTime(elapsedMs());
+  }
 }
 function updateOrb(){
-  const hp = run ? Math.max(0, run.bossHp) : BOSS_HP;
-  const pct = Math.round(hp / BOSS_HP * 100);
+  const max = (run && run.bossMax) ? run.bossMax : BOSS_HP;
+  const hp = run ? Math.max(0, run.bossHp) : max;
+  const pct = Math.round(hp / max * 100);
   $('bossLiquid').style.height = pct + '%';
   $('hptext').textContent = pct + '%';
   $('hpsub').textContent = fmt(hp);
@@ -564,7 +623,7 @@ function makeSlots(side){
 let slotSides = null;   // beginRunで初期化
 let sideToggle = 0;
 function nextSide(){
-  const f = TODAY_BOSS.face || 'F';
+  const f = curBoss().face || 'F';
   if (f === 'L' || f === 'R') return f;
   sideToggle ^= 1;                      // 正面ボスは左右交互
   return sideToggle ? 'R' : 'L';
@@ -580,8 +639,7 @@ function takeSlot(side, fly){
     y: base.y + (Math.random()-0.5) * 1.2 + wrap * 0.6,
   };
 }
-function summonUnit(kana){
-  const def = unitForWord(kana);
+function placeUnit(def){
   const side = nextSide();
   const pos = takeSlot(side, def.fly);
   // 素材は基本右向き(artLは左向き)。右側配置→左(中央)を向かせる、左側配置→右(中央)を向かせる
@@ -591,7 +649,7 @@ function summonUnit(kana){
   el.style.left = pos.x + '%';
   el.style.bottom = pos.y + '%';
   el.style.height = def.h + '%';
-  el.style.zIndex = def.fly ? 7 : 6;
+  el.style.zIndex = Math.round(60 - pos.y);   // 手前(下)ほど前面に描画
   el.innerHTML = '<img src="cthulhu-assets/' + def.img + '" alt="">';
   const unit = { el: null, def, dmg: def.dmg * DEBUG_DMG_X, proj: def.proj,
     nextAtk: Date.now() + 400 + Math.random()*600, x: pos.x, y: pos.y };
@@ -606,6 +664,16 @@ function summonUnit(kana){
     if (pick) { pick.classList.remove('spawn'); void pick.offsetWidth; pick.classList.add('spawn'); }
   }
   run.army.push(unit);
+  return { unit, pos };
+}
+
+function summonUnit(kana){
+  const def = unitForWord(kana);
+  const { pos } = placeUnit(def);
+  if (run.mode === 'survival') {
+    run.unitCounts[def.img] = (run.unitCounts[def.img] || 0) + 1;
+    saveSurv();
+  }
   // 召喚トースト
   const toast = document.createElement('div');
   toast.className = 'summonToast';
@@ -664,7 +732,7 @@ function unitAttack(u){
 }
 
 function dealDamage(dmg){
-  if (!run || run.killed || state !== 'playing') return;
+  if (!run || run.killed || run.swapping || state !== 'playing') return;
   run.bossHp -= dmg;
   popDamage(dmg, false);
   bossHitFx();
@@ -735,17 +803,54 @@ function calcScore(){
 // 討伐 → 結果
 // ═══════════════════════════════════════════════
 function onKill(){
+  if (run.mode === 'survival') return survKill();
   run.killed = true;
   run.killMs = elapsedMs();
   state = 'victory';
   clearInterval(run.tickId); clearInterval(run.hudId);
   bossEl.classList.add('dying');
+  $('kbText').textContent = '';
   $('killBanner').classList.add('on');
   blip(880, 0.4, 0.15, 'triangle'); setTimeout(()=>blip(1320,0.5,0.12,'triangle'), 120);
   setTimeout(() => {
     $('killBanner').classList.remove('on');
     showResult();
   }, 1400);
+}
+
+// サバイバル討伐：軍勢そのまま、次のボスが即登場（エンドレス）
+function survKill(){
+  run.kills++;
+  run.swapping = true;
+  saveSurv();
+  submitSurv(false);
+  $('hKills').textContent = fmt(run.kills);
+  $('kbText').textContent = '累計 ' + fmt(run.kills) + ' 体';
+  $('killBanner').classList.add('on');
+  blip(880, 0.25, 0.14, 'triangle'); setTimeout(()=>blip(1320,0.3,0.1,'triangle'), 100);
+  bossEl.classList.add('dying');
+  setTimeout(() => {
+    $('killBanner').classList.remove('on');
+    // 入れ替え待ちの間にEsc等で抜けていたら何もしない
+    if (!run || run.mode !== 'survival' || state !== 'playing') return;
+    bossEl.classList.remove('dying');
+    setBossVisual(curBoss());
+    bossEl.classList.add('enter');
+    setTimeout(() => bossEl.classList.remove('enter'), 650);
+    run.bossMax = run.bossHp = survHP(run.kills);
+    run.swapping = false;
+    updateOrb(); updateBattleHud();
+  }, 1000);
+}
+
+let _lastSurvSubmit = 0;
+function submitSurv(force){
+  if (DEBUG || !window._submitRaid || !run || run.mode !== 'survival' || run.kills < 1) return;
+  const now = Date.now();
+  if (!force && now - _lastSurvSubmit < 20000) return;   // 書き込みスロットル
+  _lastSurvSubmit = now;
+  window._submitRaid({ uid: profile.uid, name: profile.name, mode:'survival',
+    kills: run.kills, date: TODAY });
 }
 
 function showResult(){
@@ -801,33 +906,66 @@ async function refreshRanking(listId){
       escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.score) + '</span></div>';
   }
 }
+async function refreshSurvRanking(listId){
+  const el = $(listId);
+  el.innerHTML = '<div class="sub">読み込み中…</div>';
+  if (!window._fetchSurvRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
+  const rows = await window._fetchSurvRanking();
+  if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
+  if (!rows.length) { el.innerHTML = '<div class="sub">まだ記録なし。一番乗り！</div>'; return; }
+  el.innerHTML = rows.slice(0, 10).map((r, i) =>
+    '<div class="rrow' + (r.uid === profile.uid ? ' me' : '') + '">' +
+    '<span>' + (i+1) + '位 <span class="rname">' + escapeHtml(r.name) + '</span></span>' +
+    '<span class="rdmg">' + fmt(r.kills) + '体</span></div>'
+  ).join('');
+  const myIdx = rows.findIndex(r => r.uid === profile.uid);
+  if (myIdx >= 10) {
+    const r = rows[myIdx];
+    el.innerHTML += '<div class="rrow me"><span>' + (myIdx+1) + '位 <span class="rname">' +
+      escapeHtml(r.name) + '</span></span><span class="rdmg">' + fmt(r.kills) + '体</span></div>';
+  }
+}
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ═══════════════════════════════════════════════
 // オーバーレイ制御
 // ═══════════════════════════════════════════════
 function showOverlay(id){
-  for (const o of ['ovTitle','ovCount','ovResult','ovLocked'])
+  for (const o of ['ovTitle','ovCount','ovResult'])
     $(o).style.display = (o === id) ? 'flex' : 'none';
 }
 
-function showLocked(){
-  state = 'locked';
-  setBossVisual();
-  bossEl.classList.add('dying');
-  $('bossLiquid').style.height = '0%'; $('hptext').textContent = '0%'; $('hpsub').textContent = '討伐済み';
-  $('lockBossName').textContent = TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」';
-  $('lockStats').innerHTML = '通算討伐 <b style="color:var(--gold)">' + profile.totalClears + '</b>体　連続 <b>' + profile.streak + '</b>日' +
-    '　自己ベスト <b>' + fmt(profile.bestAll||0) + '</b>';
-  showOverlay('ovLocked');
-  refreshRanking('rankList2');
+// タイトル＝ハブ。デイリー討伐済みならボタンを封印、サバイバルは常時遊べる
+function updateTitleUI(){
+  const locked = profile.lastClearDate === TODAY && !DEBUG;
+  $('btnStart').disabled = locked;
+  $('btnStart').textContent = locked ? '討伐済み！また明日' : '本日の討伐';
+  const sv = loadSurv();
+  $('survStats').textContent = sv.kills > 0 ? 'サバイバル累計討伐：' + fmt(sv.kills) + ' 体' : '';
+}
+
+function backToTitle(){
+  run = null;
+  state = 'title';
+  unitLayer.innerHTML = '';
+  $('battleTimer').style.display = 'none';
+  $('killsRow').style.display = 'none';
+  bossEl.classList.remove('dying');
+  setBossVisual(TODAY_BOSS); updateOrb(); renderWord();
+  updateTitleUI();
+  showOverlay('ovTitle');
+  refreshRanking('rankListT');
+  refreshSurvRanking('rankListS');
 }
 
 // ═══════════════════════════════════════════════
 // 開始フロー
 // ═══════════════════════════════════════════════
-function startCountdown(){
+function startCountdown(mode){
   if (state === 'countdown' || state === 'playing') return;
+  mode = mode || 'daily';
+  if (mode === 'daily' && profile.lastClearDate === TODAY && !DEBUG) return;  // 討伐済みロック
+  gameMode = mode;
   const nm = $('nameIn').value.trim();
   profile.name = nm || profile.name || '名無しの探索者';
   saveProfile();
@@ -847,13 +985,31 @@ function startCountdown(){
 }
 
 function beginRun(){
-  run = newRun();
+  run = newRun(gameMode);
   slotSides = { L: makeSlots('L'), R: makeSlots('R') };
   sideToggle = Math.random() < 0.5 ? 0 : 1;
   unitLayer.innerHTML = '';
   bossEl.classList.remove('dying');
-  setBossVisual();
-  state = 'playing';
+  state = 'playing';   // placeUnit前に設定（nextSideがcurBossを見る）
+  if (gameMode === 'survival') {
+    // セーブから累計討伐数・ボスHP残・軍勢を復元（引き継ぎ）
+    const sv = run._survLoaded;
+    run.unitCounts = sv.counts || {};
+    run.bossMax = survHP(run.kills);
+    run.bossHp = (sv.hpLeft != null && sv.hpLeft > 0 && sv.hpLeft <= run.bossMax) ? sv.hpLeft : run.bossMax;
+    setBossVisual(curBoss());
+    for (const [img, n] of Object.entries(run.unitCounts)) {
+      const def = UNIT_BY_IMG[img];
+      if (!def) continue;
+      for (let i = 0; i < n; i++) placeUnit(def);
+    }
+    $('killsRow').style.display = '';
+    $('hKills').textContent = fmt(run.kills);
+  } else {
+    run.bossMax = run.bossHp = BOSS_HP;
+    setBossVisual(TODAY_BOSS);
+    $('killsRow').style.display = 'none';
+  }
   showOverlay(null);
   $('battleTimer').style.display = 'inline-block';
   nextWord();
@@ -865,13 +1021,9 @@ function beginRun(){
 
 function abortRun(){
   if (state !== 'playing') return;
+  if (run.mode === 'survival') { saveSurv(); submitSurv(true); }
   clearInterval(run.tickId); clearInterval(run.hudId);
-  unitLayer.innerHTML = '';
-  run = null;
-  state = 'title';
-  $('battleTimer').style.display = 'none';
-  setBossVisual(); updateOrb(); renderWord();
-  showOverlay('ovTitle');
+  backToTitle();
 }
 
 // ═══════════════════════════════════════════════
@@ -881,15 +1033,17 @@ attachKeyInput({
   isActive: () => state === 'playing',
   onChar,
   onEnter: () => {
-    if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown(); return; }
-    if (state === 'title') startCountdown();
-    else if (state === 'result' && DEBUG) startCountdown();
+    if (document.activeElement === $('nameIn')) { $('nameIn').blur(); startCountdown('daily'); return; }
+    if (state === 'title') startCountdown('daily');
+    else if (state === 'result' && DEBUG) startCountdown(gameMode);
   },
   onEscape: () => { if (state === 'playing') abortRun(); },
 });
 
-$('btnStart').addEventListener('click', startCountdown);
-$('btnRetry').addEventListener('click', () => startCountdown());
+$('btnStart').addEventListener('click', () => startCountdown('daily'));
+$('btnSurvival').addEventListener('click', () => startCountdown('survival'));
+$('btnResultBack').addEventListener('click', backToTitle);
+$('btnRetry').addEventListener('click', () => startCountdown(gameMode));
 $('audioBtn').addEventListener('click', () => {
   audioOn = !audioOn;
   $('audioBtn').style.color = audioOn ? 'var(--gold)' : '#555';
@@ -900,12 +1054,14 @@ $('audioBtn').addEventListener('click', () => {
 // 起動
 // ═══════════════════════════════════════════════
 (function init(){
-  setBossVisual();
+  setBossVisual(TODAY_BOSS);
   updateHud(); updateOrb();
   $('nameIn').value = profile.name || '';
   $('ovTodayBoss').textContent = '本日の神格：' + TODAY_BOSS.epi + '「' + TODAY_BOSS.name + '」（強度×' + STRENGTH.toFixed(2) + '）';
-  if (profile.lastClearDate === TODAY && !DEBUG) showLocked();
-  else showOverlay('ovTitle');
+  updateTitleUI();
+  showOverlay('ovTitle');
+  refreshRanking('rankListT');
+  refreshSurvRanking('rankListS');
 })();
 </script>
 </body>
