@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>累計討伐ランキング — クトゥルフタイピング</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root{ --gold:#f3c34a; --txt:#d7e0e8; --sub:#8a99a8; --line:#2c3742; }
+body{
+  font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  background:#0c0f13; color:var(--txt); padding:14px 12px 16px;
+}
+.serif{ font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP",serif; }
+.head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.head img{ height:60px; width:auto; max-width:86px; object-fit:contain;
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+.head .t1{ font-size:11px; color:var(--sub); letter-spacing:.15em; }
+.head .t3{ font-size:17px; font-weight:800; color:#f0e6d2; letter-spacing:.04em; margin-top:2px; }
+.head .t4{ font-size:10.5px; color:var(--sub); margin-top:3px; }
+.cols{ display:flex; gap:10px; padding:4px 8px; font-size:10.5px; color:var(--sub);
+  border-bottom:1px solid var(--line); }
+.cols .c-rk{ min-width:2.9em; } .cols .c-nm{ flex:1; }
+.cols .c-k{ min-width:4.2em; text-align:right; } .cols .c-s{ min-width:5.6em; text-align:right; }
+.rrow{ display:flex; align-items:baseline; gap:10px; padding:6px 8px;
+  border-bottom:1px solid #1c232b; font-size:14px; }
+.rrow.top1{ background:rgba(243,195,74,.14); }
+.rrow.top2{ background:rgba(243,195,74,.07); }
+.rrow.top3{ background:rgba(243,195,74,.04); }
+.rrow.me{ outline:1px solid rgba(243,195,74,.5); border-radius:4px; }
+.rk{ min-width:2.9em; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums; }
+.nm{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.kc{ min-width:4.2em; text-align:right; font-weight:800; color:#7fdc7f; font-variant-numeric:tabular-nums; }
+.sc{ min-width:5.6em; text-align:right; font-weight:700; color:var(--gold); font-variant-numeric:tabular-nums; font-size:12.5px; }
+.msg{ padding:16px 8px; color:var(--sub); font-size:13px; }
+.foot{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+.play{ display:inline-block; padding:8px 22px; font-size:14px; font-weight:800; letter-spacing:.08em;
+  background:linear-gradient(#ffd76a,#e0a92e); color:#1a1206 !important; border:1px solid #8a6c30;
+  border-radius:8px; text-decoration:none; }
+.play:hover{ filter:brightness(1.08); }
+#reload{ background:none; border:1px solid var(--line); color:var(--sub); border-radius:7px;
+  padding:6px 12px; font-size:11px; cursor:pointer; }
+#reload:hover{ border-color:var(--gold); color:var(--gold); }
+</style>
+</head>
+<body>
+<div class="head">
+  <img src="cthulhu-assets/boss_cthulhu.webp" alt="クトゥルフ">
+  <div>
+    <div class="t1">クトゥルフタイピング</div>
+    <div class="t3 serif">累計討伐ランキング</div>
+    <div class="t4">1日1体の神格を討伐した回数の全期間累計（同数なら累計スコア順）</div>
+  </div>
+</div>
+<div class="cols"><span class="c-rk">順位</span><span class="c-nm">なまえ</span><span class="c-k">討伐数</span><span class="c-s">累計スコア</span></div>
+<div id="list"><div class="msg">読み込み中…</div></div>
+<div class="foot">
+  <button id="reload">更新</button>
+  <a class="play" href="./" target="_top">▶ 今日の神格に挑戦する</a>
+</div>
+
+<script>
+'use strict';
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ return n.toLocaleString('ja-JP'); }
+// ゲームと同一オリジンなので、プレイ済みなら自分の行をハイライト
+let myUid = null;
+try { myUid = (JSON.parse(localStorage.getItem('ts2_profile'))||{}).uid || null; } catch(e){}
+window._render = (rows) => {
+  const el = document.getElementById('list');
+  if (!rows) { el.innerHTML = '<div class="msg">ランキングを取得できませんでした</div>'; return; }
+  if (!rows.length) { el.innerHTML = '<div class="msg">まだ記録なし。一番乗りのチャンス！</div>'; return; }
+  const medal = ['🥇','🥈','🥉'];
+  el.innerHTML = rows.slice(0, 20).map((r, i) =>
+    '<div class="rrow' + (i < 3 ? ' top' + (i+1) : '') + (r.uid === myUid ? ' me' : '') + '">' +
+    '<span class="rk">' + (medal[i] || (i+1) + '位') + '</span>' +
+    '<span class="nm">' + esc(r.name) + '</span>' +
+    '<span class="kc">' + fmt(r.kills) + '体</span>' +
+    '<span class="sc">' + fmt(r.total) + '</span></div>'
+  ).join('');
+};
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const app = initializeApp({
+  apiKey: "AIzaSyBhMkq24FzmHjnJu0OQ7SeQgEV__eY9iGo",
+  authDomain: "bubble-wars-ffcd4.firebaseapp.com",
+  storageBucket: "bubble-wars-ffcd4.firebasestorage.app",
+  projectId: "bubble-wars-ffcd4",
+  messagingSenderId: "465836224399",
+  appId: "1:465836224399:web:8852c314794cfc69a025fa"
+});
+const db = getFirestore(app);
+async function load(){
+  try {
+    // 全期間のデイリー記録を取得し、uid毎に「日毎ベスト」を積み上げる
+    // （討伐数＝クリアした日数、累計スコア＝日毎ベストの合計）
+    const snap = await getDocs(query(collection(db,'scores'), where('mode','==','raidv2')));
+    const byUidDate = new Map();   // uid|date → {name, score}
+    snap.forEach(d => {
+      const r = d.data();
+      if (!r.uid || !r.date) return;
+      const key = r.uid + '|' + r.date;
+      const cur = byUidDate.get(key);
+      if (!cur || (r.score||0) > cur.score) byUidDate.set(key, {uid:r.uid, name:r.name||'？', score:r.score||0});
+    });
+    const agg = new Map();         // uid → {name, kills, total}
+    for (const v of byUidDate.values()) {
+      const a = agg.get(v.uid) || {uid:v.uid, name:v.name, kills:0, total:0};
+      a.kills++; a.total += v.score; a.name = v.name;
+      agg.set(v.uid, a);
+    }
+    window._render([...agg.values()].sort((a,b)=> b.kills - a.kills || b.total - a.total));
+  } catch(e){ console.warn(e); window._render(null); }
+}
+load();
+document.getElementById('reload').addEventListener('click', load);
+setInterval(load, 180000);   // 3分ごとに自動更新
+</script>
+</body>
+</html>
