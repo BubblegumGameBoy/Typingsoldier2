@@ -1444,14 +1444,28 @@ function handleTyping() {}
 // ═══════════════════════════════════════════════
 // SPAWN
 // ═══════════════════════════════════════════════
+const MAX_ALLY_UNITS = 150; // 描画・処理負荷の上限
+const SPAWN_GROWTH = 1.18;  // 召喚ごとに次回の召喚数が18%ずつ増え続ける
+
+function currentSpawnBatch() {
+  return Math.max(1, Math.floor(gs.spawnPower || 1));
+}
+function allySlotsLeft() {
+  const alive = gs.units.filter(u => u.side === 'ally' && u.state !== 'dead').length;
+  return Math.max(0, MAX_ALLY_UNITS - alive);
+}
+
 function spawnAlly() {
   gs.spawnCount++;
+  const batch = currentSpawnBatch();
+  gs.spawnPower = (gs.spawnPower || 1) * SPAWN_GROWTH; // 増え続ける
   const spawnPts = Math.round(500 * comboMult()); // 召喚ごとに+500×コンボ倍率
   if (gs.allyDemonSpawned && gs.wave >= 5) {
     gs.wave5SpecialCount = (gs.wave5SpecialCount || 0) + 1;
     const spawnSpecial = gs.wave5SpecialCount % 5 === 0;
-    for (let i = 0; i < 5; i++) {
-      const g = makeUnit('goblin', 'ally', 60 + i * 12);
+    const gobCount = Math.min(Math.max(5, batch * 5), allySlotsLeft());
+    for (let i = 0; i < gobCount; i++) {
+      const g = makeUnit('goblin', 'ally', 60 + (i % 10) * 12);
       gs.units.push(g);
     }
     if (spawnSpecial) {
@@ -1464,13 +1478,19 @@ function spawnAlly() {
       gs.effects.push({type:'msg', x:160, y:GROUND-80, timer:1100, text:label, color, size:20});
     }
     gs.effects.push({type:'spawn', x:80, y:GROUND-22, timer:600, color:'#aa44ff'});
-    gs.effects.push({type:'msg', x:140, y:GROUND-60, timer:900, text:'×5！', color:'#cc88ff', size:22});
-    addScore(spawnPts * 5, 80, GROUND-75);
+    gs.effects.push({type:'msg', x:140, y:GROUND-60, timer:900, text:`×${gobCount}！`, color:'#cc88ff', size:22});
+    addScore(spawnPts * gobCount, 80, GROUND-75);
     return;
   }
-  gs.units.push(makeUnit('soldier', 'ally', 68));
+  const count = Math.min(batch, allySlotsLeft());
+  for (let i = 0; i < count; i++) {
+    gs.units.push(makeUnit('soldier', 'ally', 68 + (i % 10) * 10));
+  }
   gs.effects.push({type:'spawn', x:80, y:GROUND-22, timer:500, color:'#4dff6e'});
-  addScore(spawnPts, 80, GROUND-75);
+  if (count >= 2) {
+    gs.effects.push({type:'msg', x:140, y:GROUND-60, timer:900, text:`×${count} 召喚！`, color:'#4dff6e', size:22});
+  }
+  addScore(spawnPts * count, 80, GROUND-75);
 }
 
 // ═══════════════════════════════════════════════
@@ -2621,7 +2641,7 @@ function startGame(fromWave=1) {
   gs = {
     state:'playing', time:0, waveTime:0, wave:fromWave, score:0,
     units:[], boss:null, bossSpawned:false,
-    effects:[], spawnCount:0,
+    effects:[], spawnCount:0, spawnPower:1,
     goblinTimer:-3000, hobTimer:0,
     waveMsg:null, lastFrame:0,
     currentWord:null, inputValue:'', recentWords:[],
