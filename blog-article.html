@@ -1,4 +1,21 @@
 <style>
+  /* ▼ 全幅iframe(100vw)がページ幅を広げ、ヘッダーが伸びる/横スクロールが出るのを防ぐ */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+  }
+  /* ▼ 広告を中央寄せ（AdSenseが左寄せで描画されるのを補正・iframeサイズは不変） */
+  .post-iframe-ad { text-align: center !important; }
+  .post-iframe-ad ins {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .post-iframe-ad ins iframe {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
   /* ▼ サイドバー消す */
   #box2, .sidebar {
     display: none !important;
