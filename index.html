@@ -310,7 +310,7 @@ const DEBUG_DMG_X   = DEBUG ? 10 : 1;     // debug時は兵士火力を上げて
 
 // ═══════════════════════════════════════════════
 // ボス・ロスター（43体・後半ほど強い）
-// face: 素材の向き。L=左向き（兵士は左に集結）/ R=右向き（兵士は右）/ F=正面（兵士は左右に分散）
+// face: 素材の向き。ボスの立ち位置調整に使用（兵士は常に左右へ分散配置）
 // fly : 浮遊アニメ / scale: 表示倍率
 // ═══════════════════════════════════════════════
 const ROSTER = [
@@ -395,7 +395,15 @@ function tierForLen(len){
   for (const u of UNIT_TIERS) if (len >= u.minLen) t = u;
   return t;
 }
+// 空中ユニット一覧（天使・竜）— 後半のわちゃわちゃ感担当
+const FLY_UNITS = UNIT_TIERS[UNIT_TIERS.length - 1].units.filter(u => u.fly);
 function unitForWord(kana){
+  // 軍勢が育つほど空中ユニットの混入率が上がる（最大50%）。地上兵で埋まる後半も空が賑わう
+  const armySize = run ? run.army.length : 0;
+  const flyChance = Math.min(0.5, armySize * 0.008);
+  if (Math.random() < flyChance) {
+    return FLY_UNITS[Math.floor(Math.random() * FLY_UNITS.length)];
+  }
   const t = tierForLen(kana.length);
   return t.units[Math.floor(Math.random() * t.units.length)];
 }
@@ -568,9 +576,7 @@ function makeSlots(side){
 let slotSides = null;   // beginRunで初期化
 let sideToggle = 0;
 function nextSide(){
-  const f = TODAY_BOSS.face || 'F';
-  if (f === 'L' || f === 'R') return f;
-  sideToggle ^= 1;                      // 正面ボスは左右交互
+  sideToggle ^= 1;                      // ボスの向きに関係なく常に左右交互に散らす
   return sideToggle ? 'R' : 'L';
 }
 function takeSlot(side, fly){
