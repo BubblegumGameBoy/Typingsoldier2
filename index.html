@@ -100,9 +100,6 @@ body{
 .unit-sprite.fly.attacking{ animation:floatFly 3.6s ease-in-out infinite; }
 .unit-sprite.fly.attacking img{ animation:rfire .3s ease; }
 @keyframes rfire{ 0%{transform:translateY(0);}40%{transform:translateY(-5px);}100%{transform:translateY(0);} }
-.unit-sprite .stk{ position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-  font-size:10px; font-weight:800; color:#ffd24a; background:rgba(10,8,4,.8);
-  border:1px solid #8a6c30; border-radius:8px; padding:0 5px; white-space:nowrap; }
 .unit-sprite.spawn{ animation:uspawn .45s ease; }
 @keyframes uspawn{ 0%{transform:translateY(14px) scale(.4); opacity:0;} 60%{transform:translateY(-6px) scale(1.12); opacity:1;} 100%{transform:translateY(0) scale(1);} }
 .proj{ position:absolute; z-index:90; font-size:17px; pointer-events:none; will-change:left,top;
@@ -308,7 +305,7 @@ const DEBUG = new URLSearchParams(location.search).has('debug');
 const REF_HP        = 24000;              // 強度倍率の基準HP（このHPで×1.0）
 const SCORE_SCALE   = 100;                // スコア表示倍率
 const ATK_IV_MS     = 1200;               // 兵士の攻撃間隔（±バラつきあり）
-const MAX_SPRITES   = 40;                 // 画面に出す兵士スプライトの上限（軍勢数は無制限）
+const MAX_SPRITES   = 2000;               // 画面に出す兵士スプライトの上限（事実上無制限）
 const DEBUG_DMG_X   = DEBUG ? 10 : 1;     // debug時は兵士火力を上げて即検証
 
 // ═══════════════════════════════════════════════
@@ -604,26 +601,9 @@ function placeUnit(def){
   if (unitLayer.children.length < MAX_SPRITES) {
     el.dataset.img = def.img;
     el.dataset.baseH = def.h;
-    el.dataset.stack = '1';
     unitLayer.appendChild(el);
     unit.el = el;
     setTimeout(() => el.classList.remove('spawn'), 500);
-  } else {
-    // スプライト上限超え：同型のスプライトに合流 → ×Nバッジ＆少しずつ巨大化（成長が見え続ける）
-    const kids = [...unitLayer.children];
-    const same = kids.filter(k => k.dataset.img === def.img);
-    const pick = same.length ? same[Math.floor(Math.random()*same.length)]
-                             : kids[Math.floor(Math.random()*kids.length)];
-    if (pick) {
-      const st = (parseInt(pick.dataset.stack || '1', 10) + 1);
-      pick.dataset.stack = st;
-      let badge = pick.querySelector('.stk');
-      if (!badge) { badge = document.createElement('span'); badge.className = 'stk'; pick.appendChild(badge); }
-      badge.textContent = '×' + st;
-      const grow = Math.min(1 + st * 0.05, 1.6);
-      pick.style.height = (parseFloat(pick.dataset.baseH || def.h) * grow) + '%';
-      pick.classList.remove('spawn'); void pick.offsetWidth; pick.classList.add('spawn');
-    }
   }
   run.army.push(unit);
   return { unit, pos };

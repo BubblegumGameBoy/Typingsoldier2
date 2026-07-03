@@ -1444,7 +1444,7 @@ function handleTyping() {}
 // ═══════════════════════════════════════════════
 // SPAWN
 // ═══════════════════════════════════════════════
-const MAX_ALLY_UNITS = 150; // 描画・処理負荷の上限
+const MAX_ALLY_UNITS = 2000; // 事実上無制限（暴走防止の安全弁のみ）
 const SPAWN_GROWTH = 1.18;  // 召喚ごとに次回の召喚数が18%ずつ増え続ける
 
 function currentSpawnBatch() {
