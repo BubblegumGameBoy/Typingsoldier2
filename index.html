@@ -174,7 +174,7 @@ body{
 #resFormula{ font-size:13px; color:var(--txt); margin-top:2px;
   background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px; padding:7px 16px; }
 #resFormula b{ color:var(--gold); }
-#rankList,#rankList2,#rankListT,#rankListS{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
+#rankList{ margin-top:12px; font-size:13px; min-width:280px; max-width:380px; text-align:left; }
 .rrow{ display:flex; justify-content:space-between; gap:12px; padding:3px 8px;
   border-bottom:1px solid #1c232b; }
 .rrow.me{ background:rgba(243,195,74,.12); border-radius:4px; }
@@ -242,8 +242,7 @@ body{
   <input id="nameIn" maxlength="12" placeholder="なまえ（ランキング用）">
   <button class="gbtn" id="btnStart">挑 戦 す る</button>
   <div class="sub" style="margin-top:10px;font-size:11px;">1日1体・Enterでも開始 ／ スコア＝打鍵速度×正確率×ボス強度</div>
-  <div class="rankTitle">─ 本日の討伐者ランキング ─</div>
-  <div id="rankListT"><div class="sub">読み込み中…</div></div>
+  <div class="sub" style="margin-top:14px;font-size:11px;color:#8a99a8;">討伐すると本日のランキングに載ります</div>
 </div>
 
 <div class="overlay" id="ovCount" style="display:none;"><div id="countNum">3</div></div>
@@ -832,6 +831,8 @@ function showResult(){
 async function refreshRanking(listId){
   const el = $(listId);
   el.innerHTML = '<div class="sub">読み込み中…</div>';
+  // Firebaseモジュール(遅延読み込み)がまだ準備できていなければ少し待つ
+  for (let i = 0; i < 30 && !window._fetchRaidRanking; i++) await new Promise(r => setTimeout(r, 100));
   if (!window._fetchRaidRanking) { el.innerHTML = '<div class="sub">オフライン</div>'; return; }
   const rows = await window._fetchRaidRanking(TODAY);
   if (!rows) { el.innerHTML = '<div class="sub">ランキング取得に失敗</div>'; return; }
@@ -874,7 +875,6 @@ function backToTitle(){
   setBossVisual(TODAY_BOSS); updateOrb(); renderWord();
   updateTitleUI();
   showOverlay('ovTitle');
-  refreshRanking('rankListT');
 }
 
 // ═══════════════════════════════════════════════
@@ -959,7 +959,6 @@ $('audioBtn').addEventListener('click', () => {
   try { localStorage.removeItem('ts2_surv'); } catch(e){}   // 旧サバイバルのセーブを掃除
   updateTitleUI();
   showOverlay('ovTitle');
-  refreshRanking('rankListT');
 })();
 </script>
 </body>
