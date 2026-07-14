@@ -109,7 +109,7 @@ const SEED = [
 
 function render(docs) {
   const real = docs.map(d => d.data());
-  const all = [...real, ...SEED].sort((a,b) => b.score - a.score).slice(0, 30);
+  const all = [...real, ...SEED].sort((a,b) => b.score - a.score).slice(0, 100);
 
   const tbody = document.getElementById('rank-body');
   tbody.innerHTML = '';
@@ -138,7 +138,7 @@ function render(docs) {
   document.getElementById('updated').textContent = '最終更新: ' + new Date().toLocaleTimeString('ja-JP');
 }
 
-const q = query(collection(db, 'scores'), orderBy('score', 'desc'), limit(50));
+const q = query(collection(db, 'scores'), orderBy('score', 'desc'), limit(150));
 onSnapshot(q, snap => render(snap.docs), err => {
   document.getElementById('loading').textContent = 'ランキングの取得に失敗しました';
   console.error(err);
