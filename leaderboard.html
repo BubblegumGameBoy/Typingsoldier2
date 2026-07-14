@@ -71,7 +71,7 @@ window._render = (rows) => {
   if (!rows) { el.innerHTML = '<div class="msg">ランキングを取得できませんでした</div>'; return; }
   if (!rows.length) { el.innerHTML = '<div class="msg">まだ記録なし。一番乗りのチャンス！</div>'; return; }
   const medal = ['🥇','🥈','🥉'];
-  el.innerHTML = rows.slice(0, 20).map((r, i) =>
+  el.innerHTML = rows.slice(0, 100).map((r, i) =>
     '<div class="rrow' + (i < 3 ? ' top' + (i+1) : '') + (r.uid === myUid ? ' me' : '') + '">' +
     '<span class="rk">' + (medal[i] || (i+1) + '位') + '</span>' +
     '<span class="nm">' + esc(r.name) + '</span>' +
